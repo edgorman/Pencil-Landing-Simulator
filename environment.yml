@@ -1,0 +1,5 @@
+name: pencil-landing-simulator
+channels:
+  - conda-forge
+  - defaults
+prefix: C:\Users\edgor\anaconda3\envs\pencil-landing-simulator
