@@ -48,6 +48,26 @@ class BaseEnvironment(gym.Env):
 
         self.running = True
         return None
+    
+    def get_state(self):
+        ''' Get the current state of the environment
+        
+            Parameters:
+                none
+            
+            Returns:
+                Tuple where:
+                    0 = Distance of agent to ground
+                    1 = X velocity of agent relative to ground
+                    1 = Y velocity of agent relative to ground
+                    2 = Angle of agent relative to ground normal
+        '''
+        distance = self.window_height - self.agent.y
+        velocityX = self.agent.dx
+        velocityY = self.agent.dy
+        angle = math.radians(0) - math.radians(self.agent.angle)
+
+        return [distance, velocityX, velocityY, angle]
 
     def step(self, action):
         ''' Step the environment given an action by agent 
@@ -59,17 +79,20 @@ class BaseEnvironment(gym.Env):
                 reward: Value to reward the agent
                 info: Any extra information about environment
         '''
-        rotation_scale = 0.25
-        acceleration_scale = -0.05
+        rotation_scale = 0.15
+        acceleration_scale = -1.05
 
-        # Apply rotation to agent
+        # Apply rotation due to action
         self.agent.angle += action[1] * rotation_scale
         self.agent.angle -= action[2] * rotation_scale
 
-        # Apply acceleration to agent
+        # Apply acceleration due to action
         rad = math.radians(self.agent.angle)
         self.agent.ax += action[0] * acceleration_scale * math.sin(rad)
         self.agent.ay += action[0] * acceleration_scale * math.cos(rad)
+
+        # Apply external forces
+        self.agent.ay += 1 # gravity
 
         # Calcualte new velocity of agent
         self.agent.dx += self.agent.ax
@@ -80,7 +103,8 @@ class BaseEnvironment(gym.Env):
         self.agent.y += self.agent.dy
 
         # If agent has passed screen boundaries, exit
-        if self.agent.y > self.window_height:
+        if self.agent.y > self.window_height or \
+        self.agent.x < 0 or self.agent.x > self.window_width:
             self.running = False
         
         return None, None

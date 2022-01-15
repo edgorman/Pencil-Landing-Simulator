@@ -20,9 +20,12 @@ while environment.running:
     
     # Render the environment
     environment.render()
-    
+
+    # Get the state of the environment
+    state = environment.get_state()
+
     # Get the action from the agent
-    action = agent.get_action(environment.state_space)
+    action = agent.get_action(state)
 
     # Get result of action in environment
     reward, info = environment.step(action)
@@ -30,5 +33,5 @@ while environment.running:
     # Tick
     environment.clock.tick(30)
 
-# Output agents final reward
-print(agent.reward)
+# Calculate final reward now environment is complete
+print("finished")
