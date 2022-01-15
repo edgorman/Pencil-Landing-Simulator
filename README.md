@@ -1,6 +1,6 @@
 # Pencil Landing Simulator
 
-This repository documents my attempts for the Advent of Code Challenges which are predominantly written in Python. For each year I've written a brief description for the days I found most interesting/challenging.
+TODO
 
 ## Installation
 Use the following command to clone the respository:
@@ -21,10 +21,7 @@ Activate the conda environment:
 conda activate Pencil-Landing-Simulator
 ```
 
-Make sure you have Python installed before running the command:
-```
-python main.py
-```
+TODO
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
