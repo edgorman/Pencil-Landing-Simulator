@@ -1,12 +1,14 @@
 import pygame
 
 from agent import BaseAgent
+from model import SimpleModel
 from environment import BaseEnvironment
 
 
 # Set up agent and environment
 agent = BaseAgent(800, 450)
 environment = BaseEnvironment(agent)
+model = SimpleModel(environment)
 
 environment.reset()
 

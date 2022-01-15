@@ -1,4 +1,3 @@
-from asyncio import transports
 import gym
 import math
 import pygame
@@ -20,8 +19,8 @@ class BaseEnvironment(gym.Env):
                 none
         '''
         # Set up environment
-        self.state_space = None
-        self.action_space = None
+        self.observation_space = gym.spaces.Discrete(8)
+        self.action_space = gym.spaces.Discrete(8)
 
         # Set up window 
         self.window_width = 1600
