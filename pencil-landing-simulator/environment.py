@@ -59,8 +59,8 @@ class BaseEnvironment(gym.Env):
                 reward: Value to reward the agent
                 info: Any extra information about environment
         '''
-        rotation_scale = 0.01
-        acceleration_scale = 0.005
+        rotation_scale = 0.25
+        acceleration_scale = -0.05
 
         # Apply rotation to agent
         self.agent.angle += action[1] * rotation_scale

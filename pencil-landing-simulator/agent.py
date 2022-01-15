@@ -27,7 +27,7 @@ class BaseAgent:
         self.dx = 0
         self.dy = 0
         self.ax = 0
-        self.ay = 0.001
+        self.ay = 1
         self.angle = 0
 
         # Set up view
@@ -45,7 +45,7 @@ class BaseAgent:
                 action: The next action for the agent
         '''
 
-        return [0, 1, 0]
+        return [1, 0, 0]
     
     def give_reward(self, reward):
         ''' Give the reward from the environment

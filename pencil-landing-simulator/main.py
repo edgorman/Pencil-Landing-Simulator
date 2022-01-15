@@ -8,7 +8,6 @@ from environment import BaseEnvironment
 agent = BaseAgent(800, 450)
 environment = BaseEnvironment(agent)
 
-environment.clock.tick(5)
 environment.reset()
 
 # Iterate until environment has ceased
@@ -27,6 +26,9 @@ while environment.running:
 
     # Get result of action in environment
     reward, info = environment.step(action)
+
+    # Tick
+    environment.clock.tick(30)
 
 # Output agents final reward
 print(agent.reward)
