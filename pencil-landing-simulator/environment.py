@@ -1,6 +1,9 @@
-import gym
 import math
+import random
+
+import gym
 import pygame
+import numpy as np
 
 class BaseEnvironment(gym.Env):
     ''' BaseEnvironment
@@ -35,7 +38,7 @@ class BaseEnvironment(gym.Env):
         # Set up agent
         self.agent = agent
 
-    def reset(self):
+    def reset(self, seed=random.randint(0, 10e6)):
         ''' Reset the environment to starting conditions 
         
             Parameters:
@@ -46,7 +49,7 @@ class BaseEnvironment(gym.Env):
         '''
 
         self.running = True
-        return None
+        return self.get_state()
     
     def get_state(self):
         ''' Get the current state of the environment
@@ -61,12 +64,12 @@ class BaseEnvironment(gym.Env):
                     1 = Y velocity of agent relative to ground
                     2 = Angle of agent relative to ground normal
         '''
-        distance = self.window_height - self.agent.y
+        relDistance = self.window_height - self.agent.y
         velocityX = self.agent.dx
         velocityY = self.agent.dy
-        angle = math.radians(0) - math.radians(self.agent.angle)
+        relAngle = math.radians(0) - math.radians(self.agent.an)
 
-        return [distance, velocityX, velocityY, angle]
+        return [relDistance, velocityX, velocityY, relAngle]
 
     def step(self, action):
         ''' Step the environment given an action by agent 
@@ -75,18 +78,20 @@ class BaseEnvironment(gym.Env):
                 action: The action made by the agent during this step
             
             Returns:
+                state: Next state of the environment
                 reward: Value to reward the agent
+                done: Whether the environment is done
                 info: Any extra information about environment
         '''
         rotation_scale = 0.15
         acceleration_scale = -1.05
 
         # Apply rotation due to action
-        self.agent.angle += action[1] * rotation_scale
-        self.agent.angle -= action[2] * rotation_scale
+        self.agent.an += action[1] * rotation_scale
+        self.agent.an -= action[2] * rotation_scale
 
         # Apply acceleration due to action
-        rad = math.radians(self.agent.angle)
+        rad = math.radians(self.agent.an)
         self.agent.ax += action[0] * acceleration_scale * math.sin(rad)
         self.agent.ay += action[0] * acceleration_scale * math.cos(rad)
 
@@ -106,7 +111,10 @@ class BaseEnvironment(gym.Env):
         self.agent.x < 0 or self.agent.x > self.window_width:
             self.running = False
         
-        return None, None
+        # Calculate reward for agent
+        reward = 100 - np.prod(self.get_state())
+
+        return self.get_state(), reward, self.running, None
     
     def render(self):
         ''' Render the environment to screen 
@@ -118,6 +126,6 @@ class BaseEnvironment(gym.Env):
                 none
         '''
         self.window.fill((169, 197, 231))
-        image = pygame.transform.rotate(self.agent.image, self.agent.angle)
+        image = pygame.transform.rotate(self.agent.image, self.agent.an)
         self.window.blit(image, (self.agent.x, self.agent.y))
         pygame.display.update()

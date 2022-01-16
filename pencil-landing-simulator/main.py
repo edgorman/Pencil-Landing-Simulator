@@ -1,18 +1,21 @@
+import warnings
+warnings.filterwarnings("ignore")
+
 import pygame
 
-from agent import BaseAgent
-from model import SimpleModel
+from agent import DQNAgent
 from environment import BaseEnvironment
 
 
 # Set up agent and environment
-agent = BaseAgent(800, 450)
+agent = DQNAgent(800, 450)
 environment = BaseEnvironment(agent)
-model = SimpleModel(environment)
 
+# Train model
+# agent.train(environment)
+
+# Test model
 environment.reset()
-
-# Iterate until environment has ceased
 while environment.running:
     # Check for manual exit
     events = pygame.event.get()
@@ -20,20 +23,11 @@ while environment.running:
         if event.type == pygame.QUIT:
             environment.running = False
     
-    # Render the environment
+    # Pass through one game loop
+    state = environment.get_state()
+    action = agent.get_action(state)
+    environment.step(action)
     environment.render()
 
-    # Get the state of the environment
-    state = environment.get_state()
-
-    # Get the action from the agent
-    action = agent.get_action(state)
-
-    # Get result of action in environment
-    reward, info = environment.step(action)
-
-    # Tick
+    # Tick keeps render at N FPS
     environment.clock.tick(30)
-
-# Calculate final reward now environment is complete
-print("finished")
