@@ -1,108 +1,21 @@
-from errno import EPERM
-import os
 import random
-from abc import abstractmethod
 from collections import deque
 
-import pygame
 import numpy as np
 from keras.layers import Dense
 from keras.optimizers import Adam
 from keras.models import Sequential
 
+from .agent import BaseAgent
 
-class BaseAgent:
-    ''' BaseAgent
-    
-        This is the agent class from which all other agents will inherit.
-    '''
 
-    def __init__(self, x=0, y=0, dx=0, dy=0, an=0):
-        ''' Initialise the agent 
-        
-            Parameters:
-                x: X position of agent (default is 0)
-                y: Y position of agent (default is 0)
-                dx: X velocity of agent (default is 0)
-                dy: Y velocity of agent (default is 0)
-                an: Angle of agent (default is 0)
-            
-            Returns:
-                none
-        '''
-        # Set up default parameters
-        self.load_model = False
-        self.state_size = 4
-        self.action_size = 3
-
-        # Set up positional parameters
-        self.x = x
-        self.y = y
-        self.dx = dx
-        self.dy = dy
-        self.an = an
-        self.ax = 0
-        self.ay = 1
-
-        # Set up view in pygame
-        image_path = os.path.join(os.getcwd(), 'pencil-landing-simulator', 'assets', 'pencil.png')
-        self.image = pygame.image.load(image_path)
-        self.image = pygame.transform.scale(self.image, (16, 128))
-    
-    @abstractmethod
-    def get_action(self, state):
-        ''' Get the action of the agent given an environment state
-        
-            Parameters:
-                state: State of the environment
-            
-            Returns
-                action: Action of the agent in environment
-        '''
-        ...
-    
-    @abstractmethod
-    def train_batch(self):
-        ''' Trains the agent in a batch (method is called my 'train')
-        
-            Paremeters:
-                none
-            
-            Returns:
-                none
-        '''
-    
-    @abstractmethod
-    def train(self, environment, render=False):
-        ''' Trains the agent and stores the result in self.model
-        
-            Paremeters:
-                environment: Environment to train agent in
-                render: Whether to render the training (default is False)
-            
-            Returns:
-                none
-        '''
-    
 class DQNAgent(BaseAgent):
     ''' DQNAgent
     
-        Trains a nerual network to learn in an environment
+        Trains a nerual network to learn in a given environment
     '''
 
     def __init__(self, x=0, y=0, dx=0, dy=0, an=0):
-        ''' Initialise the DQNAgent
-        
-            Parameters:
-                x: X position of agent (default is 0)
-                y: Y position of agent (default is 0)
-                dx: X velocity of agent (default is 0)
-                dy: Y velocity of agent (default is 0)
-                an: Angle of agent (default is 0)
-            
-            Returns:
-                none
-        '''
         super().__init__(x, y, dx, dy, an)
 
         # These are hyper parameters for the DQN
@@ -191,6 +104,14 @@ class DQNAgent(BaseAgent):
         return action
 
     def train_batch(self):
+        ''' Trains the agent in a batch (method is called my 'train')
+        
+            Paremeters:
+                none
+            
+            Returns:
+                none
+        '''
         # Randomly sample memory to get training batch
         if len(self.memory) < self.train_start:
             return
@@ -240,11 +161,11 @@ class DQNAgent(BaseAgent):
                 # If environment should be rendered
                 # Warning: will slow down training significantly
                 if render:
-                    environment.render()
+                    environment.render(self)
                 
                 # Get agent action and step in environment
                 action = self.get_action(state)
-                next_state, reward, done, info = environment.step(action)
+                next_state, reward, done, _ = environment.step(self, action)
 
                 # Save sample to replay memory
                 self.update_memory(state, action, reward, next_state, done)
