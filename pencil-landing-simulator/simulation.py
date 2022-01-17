@@ -7,7 +7,7 @@ from environments.ground import GroundEnvironment
 
 # Set up agent and environment
 agent = DQNAgent(800, 450)
-environment = GroundEnvironment(agent)
+environment = GroundEnvironment(agent, (800, 900))
 
 # Train model
 # agent.train(environment)

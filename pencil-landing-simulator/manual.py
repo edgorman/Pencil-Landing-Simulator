@@ -9,7 +9,7 @@ from environments.ground import GroundEnvironment
 
 # Set up agent and environment
 agent = BaseAgent(800, 450)
-environment = GroundEnvironment(agent)
+environment = GroundEnvironment(agent, (800, 900))
 
 # Store which keys have been pressed down or up
 action = [0, 0, 0]

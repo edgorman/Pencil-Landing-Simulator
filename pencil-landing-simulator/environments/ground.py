@@ -12,10 +12,11 @@ class GroundEnvironment(BaseEnvironment):
         This environment models a simple static ground environment.
     '''
 
-    def __init__(self, agent, width=1600, height=900):
-        super().__init__(agent, width, height)
+    def __init__(self, agent, goal_position, width=1600, height=900):
+        super().__init__(agent, goal_position, width, height)
 
         self.gravity = 0.05
+        self.max_speed = 10
     
     def get_state(self):
         relDistance = self.window_height - self.agent.y
@@ -46,17 +47,20 @@ class GroundEnvironment(BaseEnvironment):
         self.agent.dy += self.agent.ay
 
         # Calculate new position of agent
-        self.agent.x += self.agent.dx
-        self.agent.y += self.agent.dy
+        self.agent.x += min(self.agent.dx, self.max_speed)
+        self.agent.y += min(self.agent.dy, self.max_speed)
 
-        # If agent has passed screen boundaries, exit
-        if self.agent.y > self.window_height or \
-        self.agent.x < 0 or self.agent.x > self.window_width:
+        # If agent has passed screen boundaries, done
+        if self.agent.y > self.window_height or self.agent.x < 0 or self.agent.x > self.window_width:
             self.running = False
         
         # Calculate reward for agent
-        reward = 100 - np.prod(self.get_state())
+        reward = math.sqrt(
+            math.pow(self.goal_position[0] - self.agent.x, 2) + 
+            math.pow(self.goal_position[1] - self.agent.y, 2)
+        )
 
+        print(reward)
         return self.get_state(), reward, self.running, {}
     
     def render(self):

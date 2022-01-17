@@ -11,7 +11,7 @@ class BaseEnvironment(gym.Env):
         It inherits from the gym environment class.
     '''
 
-    def __init__(self, agent, width=1600, height=900):
+    def __init__(self, agent, goal_position, width=1600, height=900):
         ''' Initialise the environment 
         
             Parameters:
@@ -25,6 +25,7 @@ class BaseEnvironment(gym.Env):
         # Set up environment
         self.observation_space = gym.spaces.Discrete(4)
         self.action_space = gym.spaces.Discrete(3)
+        self.goal_position = goal_position
 
         # Set up agent
         self.agent = agent
