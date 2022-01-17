@@ -9,25 +9,28 @@ from environments.ground import GroundEnvironment
 
 # Set up agent and environment
 agent = DQNAgent(800, 450)
-environment = GroundEnvironment()
+environment = GroundEnvironment(agent)
 
 # Train model
 # agent.train(environment)
 
 # Test model
-environment.reset(agent)
+environment.reset()
 while environment.running:
-    # Check for manual exit
+    environment.render()
+
+    # Process pygame events
     events = pygame.event.get()
     for event in events:
+        # Check for manual exit
         if event.type == pygame.QUIT:
             environment.running = False
+        
     
-    # Pass through one game loop
-    state = environment.get_state(agent)
+    # Step through environment once
+    state = environment.get_state()
     action = agent.get_action(state)
-    environment.step(agent, action)
-    environment.render(agent)
+    environment.step(action)
 
-    # Tick keeps render at N FPS
+    # Render environment at N fps
     environment.clock.tick(30)

@@ -11,11 +11,13 @@ class BaseEnvironment(gym.Env):
         It inherits from the gym environment class.
     '''
 
-    def __init__(self, width=1600, height=900):
+    def __init__(self, agent, width=1600, height=900):
         ''' Initialise the environment 
         
             Parameters:
-                none
+                agent: The agent active in this environment
+                width: Width of the window (default is 1600)
+                height: Height of the window (default is 900)
             
             Returns:
                 none
@@ -23,6 +25,9 @@ class BaseEnvironment(gym.Env):
         # Set up environment
         self.observation_space = gym.spaces.Discrete(4)
         self.action_space = gym.spaces.Discrete(3)
+
+        # Set up agent
+        self.agent = agent
 
         # Set up window 
         self.window_width = width
@@ -34,25 +39,25 @@ class BaseEnvironment(gym.Env):
         self.window = pygame.display.set_mode((self.window_width, self.window_height))
         self.clock = pygame.time.Clock()
 
-    def reset(self, agent, seed=random.randint(0, 10e6)):
+    def reset(self, seed=random.randint(0, 10e6)):
         ''' Reset the environment to starting conditions 
         
             Parameters:
-                agent: Agent to restart positional parameters
+                seed: Seed used to influence starting state
             
             Returns:
                 state: Starting state of environment
         '''
-        agent.reset()
+        self.agent.reset()
         self.running = True
-        return self.get_state(agent)
+        return self.get_state()
     
     @abstractmethod
-    def get_state(self, agent):
+    def get_state(self):
         ''' Get the current state of the environment
         
             Parameters:
-                agent: State is relative to this agent
+                none
             
             Returns:
                 Tuple where:
@@ -63,11 +68,10 @@ class BaseEnvironment(gym.Env):
         '''
 
     @abstractmethod    
-    def step(self, agent, action):
+    def step(self, action):
         ''' Step the environment given an action by agent 
         
             Parameters:
-                agent: Agent to update positional data for
                 action: The action made by the agent during this step
             
             Returns:
@@ -78,11 +82,11 @@ class BaseEnvironment(gym.Env):
         '''
     
     @abstractmethod
-    def render(self, agent):
+    def render(self):
         ''' Render the environment to screen 
         
             Paramters:
-                agent: Agent to draw in the environment
+                none
             
             Returns:
                 none
