@@ -1,8 +1,6 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-import pygame
-
 from agents.dqn import DQNAgent
 from environments.ground import GroundEnvironment
 
@@ -16,21 +14,12 @@ environment = GroundEnvironment(agent)
 
 # Test model
 environment.reset()
-while environment.running:
-    environment.render()
-
-    # Process pygame events
-    events = pygame.event.get()
-    for event in events:
-        # Check for manual exit
-        if event.type == pygame.QUIT:
-            environment.running = False
-        
-    
+while environment.running:    
     # Step through environment once
     state = environment.get_state()
     action = agent.get_action(state)
     environment.step(action)
 
     # Render environment at N fps
+    environment.render()
     environment.clock.tick(30)

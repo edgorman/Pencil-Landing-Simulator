@@ -12,21 +12,19 @@ agent = BaseAgent(800, 450)
 environment = GroundEnvironment(agent)
 
 # Store which keys have been pressed down or up
+action = [0, 0, 0]
 keys = [False, False, False]
 
 environment.reset()
 while environment.running:
-    environment.render()
-
-    action = [0, 0, 0]
-
     # Process pygame events
     events = pygame.event.get()
     for event in events:
         # Check for manual exit
         if event.type == pygame.QUIT:
             environment.running = False
-        # Check for manual inputs
+        
+        # Check for key presses
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
                 keys[0] = True
@@ -42,6 +40,7 @@ while environment.running:
             if event.key == pygame.K_RIGHT:
                 keys[2] = False
 
+    # Convert key presses to actions
     for i in range(len(keys)):
         if keys[i]:
             action[i] = 1
@@ -51,4 +50,5 @@ while environment.running:
     environment.step(action)
 
     # Render environment at N fps
+    environment.render()
     environment.clock.tick(30)

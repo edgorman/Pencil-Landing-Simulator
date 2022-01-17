@@ -15,7 +15,7 @@ class GroundEnvironment(BaseEnvironment):
     def __init__(self, agent, width=1600, height=900):
         super().__init__(agent, width, height)
 
-        self.gravity = 0.7
+        self.gravity = 0.05
     
     def get_state(self):
         relDistance = self.window_height - self.agent.y
@@ -27,7 +27,7 @@ class GroundEnvironment(BaseEnvironment):
     
     def step(self, action):
         rotation_scale = 0.15
-        acceleration_scale = -1.05
+        acceleration_scale = 0.15
 
         # Apply rotation due to action
         self.agent.an += action[1] * rotation_scale
@@ -35,8 +35,8 @@ class GroundEnvironment(BaseEnvironment):
 
         # Apply acceleration due to action
         rad = math.radians(self.agent.an)
-        self.agent.ax += action[0] * acceleration_scale * math.sin(rad)
-        self.agent.ay += action[0] * acceleration_scale * math.cos(rad)
+        self.agent.ax -= action[0] * acceleration_scale * math.sin(rad)
+        self.agent.ay -= action[0] * acceleration_scale * math.cos(rad)
 
         # Apply external forces
         self.agent.ay += self.gravity
@@ -46,8 +46,8 @@ class GroundEnvironment(BaseEnvironment):
         self.agent.dy += self.agent.ay
 
         # Calculate new position of agent
-        self.agent.x += self.agent.dx / 100
-        self.agent.y += self.agent.dy / 100
+        self.agent.x += self.agent.dx
+        self.agent.y += self.agent.dy
 
         # If agent has passed screen boundaries, exit
         if self.agent.y > self.window_height or \
