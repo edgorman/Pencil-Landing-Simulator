@@ -9,19 +9,34 @@ cd your/repo/directory
 git clone https://github.com/edgorman/Pencil-Landing-Simulator
 ```
 
-Create the conda environment from the yaml file:
+Install [Anaconda](https://www.anaconda.com/) and create a python environment using this command:
 ```
-cd Pencil-Landing-Simulator
-conda env create -f environment.yml
+conda env create --file environment.yml
+```
+
+And then activate it using conda
+```
+conda activate URLAnalayser
 ```
 
 ## Usage
-Activate the conda environment:
+Make sure you have conda environment installed before running the Pencil Landing Simulator:
+
 ```
-conda activate Pencil-Landing-Simulator
+python -m PencilLandingSimulator ...
 ```
 
-TODO
+Run the testing scripts in the base directory:
+```
+python -m autopep8 . --in-place --aggressive --recursive --max-line-length 120
+python -m flake8 . --max-line-length=120
+python -m pytest URLAnalyser/tests/ --disable-pytest-warnings --cov=URLAnalyser -vs
+```
+
+To update the environment file, run:
+```
+conda env export > environment.yml
+```
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
