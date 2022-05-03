@@ -4,6 +4,8 @@ from abc import abstractmethod
 
 import pygame
 
+from PencilLandingSimulator.constants import ASSET_DATA_DIRECTORY
+
 
 class BaseAgent:
     ''' BaseAgent
@@ -34,7 +36,7 @@ class BaseAgent:
         self.reset()
 
         # Set up view in pygame
-        image_path = os.path.join(os.getcwd(), 'pencil-landing-simulator', 'assets', 'pencil.png')
+        image_path = os.path.join(ASSET_DATA_DIRECTORY, 'pencil.png')
         self.image = pygame.image.load(image_path)
         self.image = pygame.transform.scale(self.image, (16, 128))
     

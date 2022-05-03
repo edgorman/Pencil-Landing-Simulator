@@ -12,11 +12,12 @@ class GroundEnvironment(BaseEnvironment):
         This environment models a simple static ground environment.
     '''
 
-    def __init__(self, agent, goal_position, width=1600, height=900):
-        super().__init__(agent, goal_position, width, height)
+    def __init__(self, goal_pos=(800, 900), width=1600, height=900):
+        super().__init__(goal_pos, width, height)
 
         self.gravity = 0.05
         self.max_speed = 10
+
     
     def get_state(self):
         relDistance = self.window_height - self.agent.y
@@ -60,7 +61,6 @@ class GroundEnvironment(BaseEnvironment):
             math.pow(self.goal_position[1] - self.agent.y, 2)
         )
 
-        print(reward)
         return self.get_state(), reward, self.running, {}
     
     def render(self):

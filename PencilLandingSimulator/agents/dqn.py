@@ -184,4 +184,4 @@ class DQNAgent(BaseAgent):
                     history.append(score)
         
         # Display history
-        print(history)
+        # print(history)
