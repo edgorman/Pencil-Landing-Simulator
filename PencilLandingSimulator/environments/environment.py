@@ -4,6 +4,7 @@ from abc import abstractmethod
 import gym
 import pygame
 
+
 class BaseEnvironment(gym.Env):
     ''' BaseEnvironment
 
@@ -12,13 +13,13 @@ class BaseEnvironment(gym.Env):
     '''
 
     def __init__(self, goal_pos, width=1600, height=900):
-        ''' Initialise the environment 
-        
+        ''' Initialise the environment
+
             Parameters:
                 goal_pos: The goal end position for the agent
                 width: Width of the window (default is 1600)
                 height: Height of the window (default is 900)
-            
+
             Returns:
                 none
         '''
@@ -27,7 +28,7 @@ class BaseEnvironment(gym.Env):
         self.action_space = gym.spaces.Discrete(3)
         self.goal_position = goal_pos
 
-        # Set up window 
+        # Set up window
         self.window_width = width
         self.window_height = height
 
@@ -36,7 +37,6 @@ class BaseEnvironment(gym.Env):
         self.running = False
         self.window = pygame.display.set_mode((self.window_width, self.window_height))
         self.clock = pygame.time.Clock()
-    
 
     def set_agent(self, agent):
         '''
@@ -44,35 +44,34 @@ class BaseEnvironment(gym.Env):
 
             Parameters:
                 agent: The agent class
-            
+
             Returns:
                 None
         '''
         self.agent = agent
 
-
     def reset(self, seed=random.randint(0, 10e6)):
-        ''' 
-            Reset the environment to starting conditions 
-        
+        '''
+            Reset the environment to starting conditions
+
             Parameters:
                 seed: Seed used to influence starting state
-            
+
             Returns:
                 state: Starting state of environment
         '''
         self.agent.reset()
         self.running = True
         return self.get_state()
-    
+
     @abstractmethod
     def get_state(self):
-        ''' 
+        '''
             Get the current state of the environment
-        
+
             Parameters:
                 none
-            
+
             Returns:
                 Tuple where:
                     0 = Distance of agent to ground
@@ -81,29 +80,29 @@ class BaseEnvironment(gym.Env):
                     2 = Angle of agent relative to ground normal
         '''
 
-    @abstractmethod    
+    @abstractmethod
     def step(self, action):
-        ''' 
-            Step the environment given an action by agent 
-        
+        '''
+            Step the environment given an action by agent
+
             Parameters:
                 action: The action made by the agent during this step
-            
+
             Returns:
                 state: Next state of the environment
                 reward: Value to reward the agent
                 done: Whether the environment is done
                 info: Any extra information about environment
         '''
-    
+
     @abstractmethod
     def render(self):
-        ''' 
-            Render the environment to screen 
-        
+        '''
+            Render the environment to screen
+
             Paramters:
                 none
-            
+
             Returns:
                 none
         '''

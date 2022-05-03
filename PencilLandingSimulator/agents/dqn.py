@@ -11,7 +11,7 @@ from .agent import BaseAgent
 
 class DQNAgent(BaseAgent):
     ''' DQNAgent
-    
+
         Trains a nerual network to learn in a given environment
     '''
 
@@ -39,13 +39,13 @@ class DQNAgent(BaseAgent):
         if self.load_model:
             self.model.load_weights("./models/pencil-dqnagent.h5")
         self.update_target_model()
-    
+
     def build_model(self):
         ''' Builds the neural network model
-        
+
             Parameters:
                 none
-            
+
             Returns:
                 model: Neural network
         '''
@@ -55,28 +55,28 @@ class DQNAgent(BaseAgent):
         model.add(Dense(self.action_size, activation='linear', kernel_initializer='he_uniform'))
         model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
         return model
-    
+
     def update_target_model(self):
         ''' Updates the weights of the target model with current model
-        
+
             Parameters:
                 none
-            
+
             Returns:
                 none
         '''
         self.target_model.set_weights(self.model.get_weights())
-    
+
     def update_memory(self, state, action, reward, next_state, done):
         ''' Saves the state and resultant environment parameters once action was complete
-        
+
             Parameters:
                 state: State of the environment
                 action: Action of the agent given the state
                 reward: Reward received by agent's action in environment
                 next_state: Following environment state from action
                 done: Whether action caused environment to finish
-            
+
             Returns:
                 none
         '''
@@ -85,7 +85,7 @@ class DQNAgent(BaseAgent):
         # Over time epsilon should decay to reduce exploration of agent in state space
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
-    
+
     def get_action(self, state):
         action = []
 
@@ -99,16 +99,16 @@ class DQNAgent(BaseAgent):
         # Else model should choose best known action
         else:
             q_value = self.model.predict(np.reshape(state, [1, self.state_size]))
-            action =  q_value[0]
-        
+            action = q_value[0]
+
         return action
 
     def train_batch(self):
         ''' Trains the agent in a batch (method is called my 'train')
-        
+
             Paremeters:
                 none
-            
+
             Returns:
                 none
         '''
@@ -162,7 +162,7 @@ class DQNAgent(BaseAgent):
                 # Warning: will slow down training significantly
                 if render:
                     environment.render(self)
-                
+
                 # Get agent action and step in environment
                 action = self.get_action(state)
                 next_state, reward, done, _ = environment.step(self, action)
@@ -182,6 +182,6 @@ class DQNAgent(BaseAgent):
 
                     # Store score history
                     history.append(score)
-        
+
         # Display history
         # print(history)

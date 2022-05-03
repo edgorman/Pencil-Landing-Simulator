@@ -28,6 +28,6 @@ if __name__ == '__main__':
     # Handle verboseness
     if args.verbose:
         Log.verboseness = 1
-    
+
     # Process arguments and run module
     app.main(args)

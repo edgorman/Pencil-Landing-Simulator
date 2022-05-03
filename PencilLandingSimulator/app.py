@@ -14,7 +14,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
         Parameters:
             environment: The environment to run the game in
             fps: Frame rate for rendering the environment
-        
+
         Returns:
             None
     '''
@@ -36,7 +36,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
             # Check for manual exit
             if event.type == pygame.QUIT:
                 environment.running = False
-            
+
             # Check for key presses
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
@@ -59,7 +59,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
                 action[i] = 1
             else:
                 action[i] = 0
-        
+
         # Update the environment with the action
         environment.step(action)
 
@@ -76,16 +76,16 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
             agent: The agent to put in the environment
             environment: The environment to run the game in
             fps: Frame rate for rendering the environment
-        
+
         Returns:
             None
     '''
     # Set up agent in environment
     environment.set_agent(agent)
     environment.reset()
-    
+
     # Iterate until environment has finished
-    while environment.running:    
+    while environment.running:
         # Step through environment once
         state = environment.get_state()
 
@@ -121,7 +121,7 @@ def main(args: dict) -> None:
         agent = DQNAgent()
     elif args.agent == 'ppo':
         agent = DQNAgent()  # TODO: PPOAgent()
-    elif args.agent =='manual':
+    elif args.agent == 'manual':
         pass
     else:
         Log.error(f"Could not load agent '{args.agent}'.")

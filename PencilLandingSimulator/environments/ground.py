@@ -1,6 +1,5 @@
 import math
 
-import numpy as np
 import pygame
 
 from .environment import BaseEnvironment
@@ -8,7 +7,7 @@ from .environment import BaseEnvironment
 
 class GroundEnvironment(BaseEnvironment):
     ''' GroundEnvironment
-    
+
         This environment models a simple static ground environment.
     '''
 
@@ -18,7 +17,6 @@ class GroundEnvironment(BaseEnvironment):
         self.gravity = 0.05
         self.max_speed = 10
 
-    
     def get_state(self):
         relDistance = self.window_height - self.agent.y
         velocityX = self.agent.dx
@@ -26,7 +24,7 @@ class GroundEnvironment(BaseEnvironment):
         relAngle = math.radians(0) - math.radians(self.agent.an)
 
         return [relDistance, velocityX, velocityY, relAngle]
-    
+
     def step(self, action):
         rotation_scale = 0.15
         acceleration_scale = 0.15
@@ -54,15 +52,15 @@ class GroundEnvironment(BaseEnvironment):
         # If agent has passed screen boundaries, done
         if self.agent.y > self.window_height or self.agent.x < 0 or self.agent.x > self.window_width:
             self.running = False
-        
+
         # Calculate reward for agent
         reward = math.sqrt(
-            math.pow(self.goal_position[0] - self.agent.x, 2) + 
+            math.pow(self.goal_position[0] - self.agent.x, 2) +
             math.pow(self.goal_position[1] - self.agent.y, 2)
         )
 
         return self.get_state(), reward, self.running, {}
-    
+
     def render(self):
         self.window.fill((169, 197, 231))
         image = pygame.transform.rotate(self.agent.image, self.agent.an)
