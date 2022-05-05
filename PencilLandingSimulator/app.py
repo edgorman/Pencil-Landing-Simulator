@@ -1,10 +1,9 @@
 import pygame
-from PencilLandingSimulator.agents.dqn import DQNAgent
-from PencilLandingSimulator.environments.ground import GroundEnvironment
 
 from PencilLandingSimulator.log import Log
 from PencilLandingSimulator.agents.agent import BaseAgent
 from PencilLandingSimulator.environments.environment import BaseEnvironment
+from PencilLandingSimulator.environments.ground import GroundEnvironment
 
 
 def manual(environment: BaseEnvironment, fps: int = 30) -> None:
@@ -20,9 +19,9 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
     '''
 
     # Set up controllable agent in environment
-    agent = BaseAgent(800, 450)
+    agent = BaseAgent()
     environment.set_agent(agent)
-    environment.reset()
+    environment.reset((800, 0), (0, 0), 0, (0, 0))
 
     # Store which keys have been pressed down or up
     action = [0, 0, 0]
@@ -34,7 +33,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
         events = pygame.event.get()
         for event in events:
             # Check for manual exit
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 environment.running = False
 
             # Check for key presses
@@ -118,9 +117,9 @@ def main(args: dict) -> None:
 
     # Initialise the agent
     if args.agent == 'dqn':
-        agent = DQNAgent()
+        agent = BaseAgent()
     elif args.agent == 'ppo':
-        agent = DQNAgent()  # TODO: PPOAgent()
+        agent = BaseAgent()  # TODO: PPOAgent()
     elif args.agent == 'manual':
         pass
     else:
