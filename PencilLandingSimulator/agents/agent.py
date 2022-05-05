@@ -1,28 +1,34 @@
 import os
-import random
 from abc import abstractmethod
 
 import pygame
 
 from PencilLandingSimulator.constants import ASSET_DATA_DIRECTORY
+from PencilLandingSimulator.environments.environment import BaseEnvironment
 
 
 class BaseAgent:
-    ''' BaseAgent
+    ''' 
+        BaseAgent
 
         This is the agent class from which all other agents will inherit.
     '''
 
-    def __init__(self, asset_name='pencil.png'):
-        ''' Initialise the agent
+    def __init__(self, asset_name: str = 'pencil.png') -> None:
+        ''' 
+            Initialise the agent
 
             Parameters:
-                None
+                asset_name: Name of image to use in GUI
 
             Returns:
-                none
+                None
         '''
         # Set up agent parameters
+        self.x, self.y = (0, 0)
+        self.dx, self.dy = (0, 0)
+        self.an = 0
+        self.ax, self.ay = (0, 0)
         self._dry_mass = 10
         self._max_fuel = 100
         self._fuel = self._max_fuel
@@ -38,7 +44,7 @@ class BaseAgent:
         self._image = pygame.transform.scale(self._image, (16, 128))
     
     @property
-    def fuel(self):
+    def fuel(self) -> int:
         '''
             Return the amount of fuel remaining
 
@@ -51,7 +57,7 @@ class BaseAgent:
         return self._fuel
     
     @property
-    def mass(self):
+    def mass(self) -> int:
         '''
             Return the mass of the agent in terms of wet and dry mass
 
@@ -63,7 +69,7 @@ class BaseAgent:
         '''
         return self._dry_mass + self._fuel
 
-    def reset(self, pos=(0, 0), vel=(0, 0), ang=0, acc=(0, 0)):
+    def reset(self, pos: tuple = (0, 0), vel: tuple = (0, 0), ang: tuple = 0, acc: tuple = (0, 0)) -> None:
         ''' 
             Reset the agent to starting parameters
 
@@ -82,7 +88,7 @@ class BaseAgent:
         self.ax, self.ay = acc
 
     @abstractmethod
-    def get_action(self, state):
+    def get_action(self, state: list) -> list:
         ''' 
             Get the action of the agent given an environment state
 
@@ -94,7 +100,7 @@ class BaseAgent:
         '''
 
     @abstractmethod
-    def train(self, environment, render=False):
+    def train(self, environment: BaseEnvironment, render: bool = False) -> None:
         ''' 
             Trains the agent and stores the result in self.model
 
@@ -103,5 +109,5 @@ class BaseAgent:
                 render: Whether to render the training (default is False)
 
             Returns:
-                none
+                None
         '''
