@@ -3,11 +3,9 @@ from abc import abstractmethod
 import gym
 import pygame
 
-from PencilLandingSimulator.agents.agent import BaseAgent
-
 
 class BaseEnvironment(gym.Env):
-    ''' 
+    '''
         BaseEnvironment
 
         This is the environment class from which all other environments will inherit.
@@ -15,15 +13,15 @@ class BaseEnvironment(gym.Env):
     '''
 
     def __init__(
-        self,
-        goal_pos: tuple,
-        goal_eps: tuple,
-        vel_eps: float,
-        vel_max: float = float('inf'),
-        gravity: float = 9.8,
-        width: int = 1600,
-        height: int = 900) -> None:
-        ''' 
+            self,
+            goal_pos: tuple,
+            goal_eps: tuple,
+            vel_eps: float,
+            vel_max: float = float('inf'),
+            gravity: float = 9.8,
+            width: int = 1600,
+            height: int = 900) -> None:
+        '''
             Initialise the environment
 
             Parameters:
@@ -43,6 +41,7 @@ class BaseEnvironment(gym.Env):
         self._action_space = gym.spaces.Discrete(3)
 
         # Set up variables for agent
+        self.agent = None
         self._goal_pos = goal_pos
         self._goal_eps = goal_eps
         self._vel_eps = vel_eps
@@ -55,17 +54,17 @@ class BaseEnvironment(gym.Env):
 
         # Set up pygame
         pygame.init()
-        self._running = False
-        self._window = pygame.display.set_mode((self._window_width, self._window_height))
-        self._clock = pygame.time.Clock()
+        self.running = False
+        self.window = pygame.display.set_mode((self._window_width, self._window_height))
+        self.clock = pygame.time.Clock()
 
     @abstractmethod
-    def reset(self, agent: BaseAgent) -> list:
+    def reset(self, agent) -> list:
         '''
             Reset the environment and agent to starting conditions
 
             Parameters:
-                agent: Agent to set in the environment
+                agent: The agent operating in the environment
 
             Returns:
                 state: Starting state of environment

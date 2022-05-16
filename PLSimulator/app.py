@@ -1,9 +1,10 @@
+from lib2to3.pytree import Base
 import pygame
 
-from PencilLandingSimulator.log import Log
-from PencilLandingSimulator.agents.agent import BaseAgent
-from PencilLandingSimulator.environments.environment import BaseEnvironment
-from PencilLandingSimulator.environments.ground import GroundEnvironment
+from PLSimulator.log import Log
+from PLSimulator.agents.agent import BaseAgent
+from PLSimulator.environments.environment import BaseEnvironment
+from PLSimulator.environments.ground import GroundEnvironment
 
 
 def manual(environment: BaseEnvironment, fps: int = 30) -> None:
@@ -17,11 +18,11 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
         Returns:
             None
     '''
-
-    # Set up controllable agent in environment
+    # Set up dummy agent
     agent = BaseAgent()
-    environment.set_agent(agent)
-    environment.reset((800, 0), (0, 0), 0, (0, 0))
+
+    # Set up environment
+    environment.reset(agent)
 
     # Store which keys have been pressed down or up
     action = [0, 0, 0]
@@ -79,14 +80,13 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
         Returns:
             None
     '''
-    # Set up agent in environment
-    environment.set_agent(agent)
-    environment.reset()
+    # Set up environment
+    environment.reset(agent)
 
     # Iterate until environment has finished
     while environment.running:
         # Step through environment once
-        state = environment.get_state()
+        state = environment.get_state(agent)
 
         # Get action of the agent
         action = agent.get_action(state)
@@ -117,7 +117,7 @@ def main(args: dict) -> None:
 
     # Initialise the agent
     if args.agent == 'dqn':
-        agent = BaseAgent()
+        agent = BaseAgent()  # TODO: DQNAgent()
     elif args.agent == 'ppo':
         agent = BaseAgent()  # TODO: PPOAgent()
     elif args.agent == 'manual':

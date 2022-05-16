@@ -1,4 +1,4 @@
-name: PencilLandingSimulator
+name: PLSimulator
 channels:
   - conda-forge
   - defaults
@@ -30,4 +30,4 @@ dependencies:
   - setuptools
   - pip:
     - pygame==2.1.2
-prefix: C:\Users\edgor\anaconda3\envs\PencilLandingSimulator
+prefix: C:\Users\edgor\anaconda3\envs\PLSimulator

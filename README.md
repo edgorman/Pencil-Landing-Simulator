@@ -23,14 +23,14 @@ conda activate URLAnalayser
 Make sure you have conda environment installed before running the Pencil Landing Simulator:
 
 ```
-python -m PencilLandingSimulator ...
+python -m PLSimulator ...
 ```
 
 Run the testing scripts in the base directory:
 ```
 python -m autopep8 . --in-place --aggressive --recursive --max-line-length 120
 python -m flake8 . --max-line-length=120
-python -m pytest PencilLandingSimulator/tests/ --disable-pytest-warnings --cov=PencilLandingSimulator -vs
+python -m pytest PLSimulator/tests/ --disable-pytest-warnings --cov=PLSimulator -vs
 ```
 
 To update the environment file, run:
