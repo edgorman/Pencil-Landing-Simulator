@@ -18,7 +18,7 @@ if __name__ == '__main__':
     # Parse input arguments
     parser = argparse.ArgumentParser(prog="PLSimulator", description="Train an agent to propulsively land.")
     parser.add_argument('-agent', choices=['manual', 'dqn', 'ppo'], help="choose the agent", default='manual')
-    parser.add_argument('-env', choices=['ground'], help="choose the environment", default='ground')
+    parser.add_argument('-env', choices=['space'], help="choose the environment", default='space')
     parser.add_argument('-verbose', action='store_true', dest='verbose', help="show extra output", default=False)
     parser.add_argument('-version', action='version', version='%(prog)s@dev')
 
