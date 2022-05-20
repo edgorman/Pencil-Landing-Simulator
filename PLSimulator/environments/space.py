@@ -28,9 +28,9 @@ class SpaceEnvironment(BaseEnvironment):
         return [0, 0, 0, 0]
     
     def step(self, action):
-        thrust = action[0] * -self._acc_force_scale
-        left = action[1] * -self._rot_force_scale
-        right = action[2] * self._rot_force_scale
+        thrust = -action[0] * self._force_scale
+        left = -action[1] * self._rotation_scale
+        right = action[2] * self._rotation_scale
         
         # Process angular data
         ang_acceleration = left + right
@@ -63,5 +63,5 @@ class SpaceEnvironment(BaseEnvironment):
         rotated_image = pygame.transform.rotate(self._agent.image, self._agent.angle)
         new_rect = rotated_image.get_rect(center = self._agent.image.get_rect(topleft = self._agent.position).center)
         self.window.blit(rotated_image, new_rect.topleft)
-        
+
         pygame.display.update()

@@ -39,8 +39,8 @@ class BaseEnvironment(gym.Env):
         self._entities = entities
 
         # Set up environment
-        self._rot_force_scale = 1.69
-        self._acc_force_scale = 0.69
+        self._rotation_scale = 1.69
+        self._force_scale = 0.69
 
         # Set up window
         self._window_width = width

@@ -3,7 +3,7 @@ import pygame
 from PLSimulator.log import Log
 from PLSimulator.agents.agent import BaseAgent
 from PLSimulator.environments.environment import BaseEnvironment
-from PLSimulator.environments.space import SpaceEnvironment
+from PLSimulator.environments.planet import PlanetEnvironment
 
 
 def manual(environment: BaseEnvironment, fps: int = 30) -> None:
@@ -52,7 +52,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
         # Convert key presses to actions
         for i in range(len(keys)):
             if keys[i]:
-                action[i] = 1
+                action[i] = 2
             else:
                 action[i] = 0
 
@@ -117,7 +117,7 @@ def main(args: dict) -> None:
     
     # Initialise the environment
     if args.env == 'space':
-        environment = SpaceEnvironment(agent)
+        environment = PlanetEnvironment(agent)
     else:
         Log.error(f"Could not load environment '{args.env}'.")
 
