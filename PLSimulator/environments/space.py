@@ -32,28 +32,13 @@ class SpaceEnvironment(BaseEnvironment):
         left = -action[1] * self._rotation_scale
         right = action[2] * self._rotation_scale
         
-        # Process angular data
-        ang_acceleration = left + right
-        self._agent.angle += ang_acceleration
-
+        # Move agent under it's own thrust
+        heading = self._agent.angle + left + right
         thrust = (
-            thrust * math.sin(math.radians(self._agent.angle)),
-            thrust * math.cos(math.radians(self._agent.angle))
+            thrust * math.sin(math.radians(heading)),
+            thrust * math.cos(math.radians(heading))
         )
-
-        # Process positional data
-        pos_acceleration = (
-            thrust[0] / self._agent.mass,
-            thrust[1] / self._agent.mass
-        )
-        self._agent.velocity = (
-            self._agent.velocity[0] + pos_acceleration[0],
-            self._agent.velocity[1] + pos_acceleration[1]
-        )
-        self._agent.position = (
-            self._agent.position[0] + self._agent.velocity[0],
-            self._agent.position[1] + self._agent.velocity[1]
-        )
+        self._agent.update_position(thrust, heading)
 
         return self.state(), 0, False, {}
     

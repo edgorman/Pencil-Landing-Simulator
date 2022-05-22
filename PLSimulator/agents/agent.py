@@ -18,7 +18,6 @@ class BaseAgent(BaseEntity):
         position: tuple = (0, 0),
         velocity: tuple = (0, 0),
         angle: float = 0,
-        ang_velocity: float = 0,
         mass: float = 10,
         fuel: float = 100) -> None:
         '''
@@ -30,7 +29,7 @@ class BaseAgent(BaseEntity):
             Returns:
                 None
         '''
-        super().__init__(asset_name, (16, 128), position, velocity, angle, ang_velocity, mass, True, True)
+        super().__init__(asset_name, (16, 128), position, velocity, angle, mass, True, True)
         
         # Set up extra parameters
         self.fuel = fuel
@@ -54,7 +53,6 @@ class BaseAgent(BaseEntity):
         position: tuple = (0, 0),
         velocity: tuple = (0, 0),
         angle: float = 0,
-        ang_velocity: float = 0,
         fuel: float = 100) -> None:
         '''
             Reset the agent to starting parameters
@@ -63,7 +61,6 @@ class BaseAgent(BaseEntity):
                 position: Current position of entity
                 velocity: Current velocity of entity
                 angle: Current angle of the entity
-                ang_velocity: Current angular velocity of entity
                 fuel: Amount of fuel remaining
 
             Returns:
@@ -72,7 +69,6 @@ class BaseAgent(BaseEntity):
         self.position = position
         self.velocity = velocity
         self.angle = angle
-        self.ang_velocity = ang_velocity
         self.fuel = fuel
 
     @abstractmethod
