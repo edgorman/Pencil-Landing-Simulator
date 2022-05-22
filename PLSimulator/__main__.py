@@ -15,10 +15,14 @@ if __name__ == '__main__':
     # Initialise coloured text
     colorama.init(convert=True)
 
+    # Configure agent and environment choices
+    agent_choices = list(app.AGENT_OBJCECTS_DICT.keys())
+    env_choices = list(app.ENVIRONMENT_OBJECTS_DICT.keys())
+
     # Parse input arguments
     parser = argparse.ArgumentParser(prog="PLSimulator", description="Train an agent to propulsively land.")
-    parser.add_argument('-agent', choices=['manual', 'dqn', 'ppo'], help="choose the agent", default='manual')
-    parser.add_argument('-env', choices=['space'], help="choose the environment", default='space')
+    parser.add_argument('-agent', choices=agent_choices, help="choose the agent", default='manual')
+    parser.add_argument('-env', choices=env_choices, help="choose the environment", default='earth')
     parser.add_argument('-verbose', action='store_true', dest='verbose', help="show extra output", default=False)
     parser.add_argument('-version', action='version', version='%(prog)s@dev')
 

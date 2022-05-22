@@ -3,7 +3,21 @@ import pygame
 from PLSimulator.log import Log
 from PLSimulator.agents.agent import BaseAgent
 from PLSimulator.environments.environment import BaseEnvironment
-from PLSimulator.environments.planet import EarthEnvironment, MarsEnvironment
+from PLSimulator.environments.space import SpaceEnvironment
+from PLSimulator.environments.planet import EarthEnvironment
+from PLSimulator.environments.planet import MarsEnvironment
+
+AGENT_OBJCECTS_DICT = {
+    'manual': BaseAgent,
+    'dqn': BaseAgent,  # TODO
+    'ppo': BaseAgent,  # TODO
+}
+
+ENVIRONMENT_OBJECTS_DICT = {
+    'space': SpaceEnvironment,
+    'earth': EarthEnvironment,
+    'mars': MarsEnvironment,
+}
 
 
 def manual(environment: BaseEnvironment, fps: int = 30) -> None:
@@ -105,25 +119,13 @@ def main(args: dict) -> None:
         Returns:
             None
     '''
-    # Initialise the agent
-    if args.agent == 'dqn':
-        agent = BaseAgent()  # TODO: DQNAgent()
-    elif args.agent == 'ppo':
-        agent = BaseAgent()  # TODO: PPOAgent()
-    elif args.agent == 'manual':
-        agent = BaseAgent()
-    else:
-        Log.error(f"Could not load agent '{args.agent}'.")
-    
-    # Initialise the environment
-    if args.env == 'space':
-        environment = EarthEnvironment(agent)
-    else:
-        Log.error(f"Could not load environment '{args.env}'.")
+
+    # Initialise the agent and environment
+    agent = AGENT_OBJCECTS_DICT[args.agent]()
+    environment = ENVIRONMENT_OBJECTS_DICT[args.env](agent)
 
     # Simulate the environment
     if args.agent == 'manual':
         manual(environment)
     else:
-        # TODO: Train agent if needed
         simulate(agent, environment)
