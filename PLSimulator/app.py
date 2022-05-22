@@ -1,10 +1,23 @@
-from lib2to3.pytree import Base
 import pygame
 
 from PLSimulator.log import Log
 from PLSimulator.agents.agent import BaseAgent
 from PLSimulator.environments.environment import BaseEnvironment
-from PLSimulator.environments.ground import GroundEnvironment
+from PLSimulator.environments.space import SpaceEnvironment
+from PLSimulator.environments.planet import EarthEnvironment
+from PLSimulator.environments.planet import MarsEnvironment
+
+AGENT_OBJCECTS_DICT = {
+    'manual': BaseAgent,
+    'dqn': BaseAgent,  # TODO
+    'ppo': BaseAgent,  # TODO
+}
+
+ENVIRONMENT_OBJECTS_DICT = {
+    'space': SpaceEnvironment,
+    'earth': EarthEnvironment,
+    'mars': MarsEnvironment,
+}
 
 
 def manual(environment: BaseEnvironment, fps: int = 30) -> None:
@@ -18,11 +31,8 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
         Returns:
             None
     '''
-    # Set up dummy agent
-    agent = BaseAgent()
-
     # Set up environment
-    environment.reset(agent)
+    environment.reset()
 
     # Store which keys have been pressed down or up
     action = [0, 0, 0]
@@ -56,7 +66,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
         # Convert key presses to actions
         for i in range(len(keys)):
             if keys[i]:
-                action[i] = 1
+                action[i] = 1.5
             else:
                 action[i] = 0
 
@@ -81,12 +91,12 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
             None
     '''
     # Set up environment
-    environment.reset(agent)
+    environment.reset()
 
     # Iterate until environment has finished
     while environment.running:
         # Step through environment once
-        state = environment.get_state(agent)
+        state = environment.state(agent)
 
         # Get action of the agent
         action = agent.get_action(state)
@@ -109,25 +119,13 @@ def main(args: dict) -> None:
         Returns:
             None
     '''
-    # Initialise the environment
-    if args.env == 'ground':
-        environment = GroundEnvironment()
-    else:
-        Log.error(f"Could not load environment '{args.env}'.")
 
-    # Initialise the agent
-    if args.agent == 'dqn':
-        agent = BaseAgent()  # TODO: DQNAgent()
-    elif args.agent == 'ppo':
-        agent = BaseAgent()  # TODO: PPOAgent()
-    elif args.agent == 'manual':
-        pass
-    else:
-        Log.error(f"Could not load agent '{args.agent}'.")
+    # Initialise the agent and environment
+    agent = AGENT_OBJCECTS_DICT[args.agent]()
+    environment = ENVIRONMENT_OBJECTS_DICT[args.env](agent)
 
     # Simulate the environment
     if args.agent == 'manual':
         manual(environment)
     else:
-        # TODO: Train agent if needed
         simulate(agent, environment)

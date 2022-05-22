@@ -1,6 +1,6 @@
 # Pencil Landing Simulator
 
-TODO
+This is my first solo attempt at a Reinforcement Leaning project in Python, exploring whether an agent can land a pencil autonomously in different environments. Not at all inspired by SpaceX. It's like the traditional [CartPole Environment](https://github.com/openai/gym/blob/e2266025e6c77641629f1ce8b12b4f73bca91352/gym/envs/classic_control/cartpole.py) but with a requirement to land vertically and slowly.
 
 ## Installation
 Use the following command to clone the respository:
@@ -16,7 +16,7 @@ conda env create --file environment.yml
 
 And then activate it using conda
 ```
-conda activate URLAnalayser
+conda activate PLSimulator
 ```
 
 ## Usage

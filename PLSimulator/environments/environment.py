@@ -1,7 +1,9 @@
-from abc import abstractmethod
-
 import gym
 import pygame
+from abc import abstractmethod
+
+from PLSimulator.agents.agent import BaseAgent
+from PLSimulator.entities.entity import BaseEntity
 
 
 class BaseEnvironment(gym.Env):
@@ -13,40 +15,32 @@ class BaseEnvironment(gym.Env):
     '''
 
     def __init__(
-            self,
-            goal_pos: tuple,
-            goal_eps: tuple,
-            vel_eps: float,
-            vel_max: float = float('inf'),
-            gravity: float = 9.8,
-            width: int = 1600,
-            height: int = 900) -> None:
+        self,
+        agent: BaseAgent,
+        entities: list = [],
+        width: int = 1600,
+        height: int = 900) -> None:
         '''
             Initialise the environment
 
             Parameters:
-                goal_pos: Position the agent should end at
-                goal_eps: Positional margin allowed for agent when landing
-                vel_eps: Velocity margin allowed for agent when landing
-                vel_max: Max velocity achievable in environment
+                agent: The agent operating in the environment
+                entities: The entities interacting in the environment
                 gravity: Force applied to agent in a downward direction
+                max_velocity: Max velocity achievable in environment
                 width: Width of the window (default is 1600)
                 height: Height of the window (default is 900)
 
             Returns:
                 None
         '''
-        # Set up environment
-        self._observation_space = gym.spaces.Discrete(4)
-        self._action_space = gym.spaces.Discrete(3)
+        # Set up entities
+        self._agent = agent
+        self._entities = entities
 
-        # Set up variables for agent
-        self.agent = None
-        self._goal_pos = goal_pos
-        self._goal_eps = goal_eps
-        self._vel_eps = vel_eps
-        self._vel_max = vel_max
-        self._gravity = gravity
+        # Set up environment
+        self._rotation_scale = 1.69
+        self._force_scale = 0.69
 
         # Set up window
         self._window_width = width
@@ -59,19 +53,19 @@ class BaseEnvironment(gym.Env):
         self.clock = pygame.time.Clock()
 
     @abstractmethod
-    def reset(self, agent) -> list:
+    def reset(self) -> list:
         '''
-            Reset the environment and agent to starting conditions
+            Reset the environment to starting conditions
 
             Parameters:
-                agent: The agent operating in the environment
+                None
 
             Returns:
                 state: Starting state of environment
         '''
 
     @abstractmethod
-    def get_state(self) -> list:
+    def state(self) -> list:
         '''
             Get the current state of the environment
 

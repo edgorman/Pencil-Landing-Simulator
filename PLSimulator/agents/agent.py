@@ -1,65 +1,44 @@
 import os
+import pygame
 from abc import abstractmethod
 
-import pygame
-
-from PLSimulator.constants import ASSET_DATA_DIRECTORY
-from PLSimulator.environments.environment import BaseEnvironment
+from PLSimulator.entities.entity import BaseEntity
 
 
-class BaseAgent:
+class BaseAgent(BaseEntity):
     '''
         BaseAgent
 
         This is the agent class from which all other agents will inherit.
     '''
 
-    def __init__(self, asset_name: str = 'pencil.png') -> None:
+    def __init__(
+        self,
+        asset_name: str = 'pencil.png',
+        position: tuple = (0, 0),
+        velocity: tuple = (0, 0),
+        angle: float = 0,
+        mass: float = 10,
+        fuel: float = 100) -> None:
         '''
-            Initialise the agent
+            Initialise the agent. For extra parameters see :func:`<PLSimulator.entities.entity.BaseEntity>`
 
             Parameters:
-                asset_name: Name of image to use in GUI
-
-            Returns:
-                None
-        '''
-        # Set up agent parameters
-        self.x, self.y = (0, 0)
-        self.dx, self.dy = (0, 0)
-        self.an = 0
-        self.ax, self.ay = (0, 0)
-        self._dry_mass = 10
-        self._max_fuel = 100
-        self._fuel = self._max_fuel
-
-        # Set up model parameters
-        self._load_model = False
-        self._state_size = 4
-        self._action_size = 3
-
-        # Set up view in pygame
-        image_path = os.path.join(ASSET_DATA_DIRECTORY, asset_name)
-        self.image = pygame.image.load(image_path)
-        self.image = pygame.transform.scale(self.image, (16, 128))
-
-    @property
-    def fuel(self) -> int:
-        '''
-            Return the amount of fuel remaining
-
-            Parameters:
-                None
-
-            Returns:
                 fuel: Amount of fuel remaining
+
+            Returns:
+                None
         '''
-        return self._fuel
+        super().__init__(asset_name, (16, 128), position, velocity, angle, mass, True, True)
+        
+        # Set up extra parameters
+        self.fuel = fuel
+        self._max_fuel = 100
 
     @property
-    def mass(self) -> int:
+    def wet_mass(self) -> float:
         '''
-            Return the mass of the agent in terms of wet and dry mass
+            Return the mass of the agent in terms of fuel and dry mass
 
             Parameters:
                 None
@@ -67,25 +46,30 @@ class BaseAgent:
             Returns:
                 mass: Mass of the agent
         '''
-        return self._dry_mass + self._fuel
+        return self.mass + self.fuel
 
-    def reset(self, pos: tuple = (0, 0), vel: tuple = (0, 0), ang: tuple = 0, acc: tuple = (0, 0)) -> None:
+    def reset(
+        self,
+        position: tuple = (0, 0),
+        velocity: tuple = (0, 0),
+        angle: float = 0,
+        fuel: float = 100) -> None:
         '''
             Reset the agent to starting parameters
 
             Parameters:
-                pos: Starting position of the agent
-                vel: Starting velocity of the agent
-                ang: Starting angle of the agent
-                acc: Starting acceleration of the agent
+                position: Current position of entity
+                velocity: Current velocity of entity
+                angle: Current angle of the entity
+                fuel: Amount of fuel remaining
 
             Returns:
                 None
         '''
-        self.x, self.y = pos
-        self.dx, self.dy = vel
-        self.an = ang
-        self.ax, self.ay = acc
+        self.position = position
+        self.velocity = velocity
+        self.angle = angle
+        self.fuel = fuel
 
     @abstractmethod
     def get_action(self, state: list) -> list:
@@ -97,17 +81,4 @@ class BaseAgent:
 
             Returns
                 action: Action of the agent in environment
-        '''
-
-    @abstractmethod
-    def train(self, environment: BaseEnvironment, render: bool = False) -> None:
-        '''
-            Trains the agent and stores the result in self.model
-
-            Paremeters:
-                environment: Environment to train agent in
-                render: Whether to render the training (default is False)
-
-            Returns:
-                None
         '''
