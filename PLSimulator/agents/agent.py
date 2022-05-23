@@ -1,5 +1,3 @@
-import os
-import pygame
 from abc import abstractmethod
 
 from PLSimulator.entities.entity import BaseEntity
@@ -29,7 +27,7 @@ class BaseAgent(BaseEntity):
             Returns:
                 None
         '''
-        super().__init__(asset_name, (16, 128), position, velocity, angle, mass, True, True)
+        super().__init__(asset_name, (16, 128), position, velocity, angle, mass, True)
         
         # Set up extra parameters
         self.fuel = fuel

@@ -67,7 +67,7 @@ class EarthEnvironment(PlanetEnvironment):
         entities: list = [], 
         width: int = 1600, 
         height: int = 900):
-        super().__init__(agent, entities, 0.98, 0.1, width, height)
+        super().__init__(agent, entities, 9.8, 1, width, height)
 
 
 class MarsEnvironment(PlanetEnvironment):
@@ -83,4 +83,4 @@ class MarsEnvironment(PlanetEnvironment):
         entities: list = [], 
         width: int = 1600, 
         height: int = 900):
-        super().__init__(agent, entities, 0.49, 0.05, width, height)
+        super().__init__(agent, entities, 4.9, 0.1, width, height)

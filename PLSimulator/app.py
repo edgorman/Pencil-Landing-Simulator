@@ -66,7 +66,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
         # Convert key presses to actions
         for i in range(len(keys)):
             if keys[i]:
-                action[i] = 1.5
+                action[i] = 1
             else:
                 action[i] = 0
 

@@ -19,7 +19,6 @@ class BaseEntity:
         velocity: tuple = (0, 0),
         angle: float = 0,
         mass: float = 1,
-        isMovable: bool = True,
         isRenderable: bool = True) -> None:
         '''
             Initialise the entity
@@ -31,7 +30,6 @@ class BaseEntity:
                 velocity: Current velocity of entity
                 angle: Current angle of the entity
                 mass: Mass of entity (may change)
-                isMovable: Whether the entity is movable
                 isRenderable: Whether the entity is renderable
 
             Returns:
@@ -42,7 +40,6 @@ class BaseEntity:
         self.velocity = velocity
         self.angle = angle
         self.mass = mass
-        self._isMovable = isMovable
         self._isRenderable = isRenderable
 
         image_path = os.path.join(ASSET_DATA_DIRECTORY, asset_name)
