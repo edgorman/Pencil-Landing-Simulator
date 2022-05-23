@@ -17,7 +17,7 @@ class BaseAgent(BaseEntity):
         velocity: tuple = (0, 0),
         angle: float = 0,
         mass: float = 10,
-        fuel: float = 100) -> None:
+        fuel: float = 1000) -> None:
         '''
             Initialise the agent. For extra parameters see :func:`<PLSimulator.entities.entity.BaseEntity>`
 

@@ -29,9 +29,9 @@ class SpaceEnvironment(BaseEnvironment):
     
     def step(self, action):
         # Convert agent actions into forces
-        thrust = -action[0] * 14 * self._force_scale
-        left = -action[1] * 14 * self._rotation_scale
-        right = action[2] * 14 * self._rotation_scale
+        thrust = -action[0] * 15 * self._force_scale
+        left = -action[1] * 15 * self._rotation_scale
+        right = action[2] * 15 * self._rotation_scale
 
         # Check if agent has enough fuel to fire engine
         if self._agent.fuel <= 0:
@@ -54,8 +54,8 @@ class SpaceEnvironment(BaseEnvironment):
     def render(self):
         self.window.fill((0, 0, 0))
         
-        rotated_image = pygame.transform.rotate(self._agent.image, self._agent.angle)
-        new_rect = rotated_image.get_rect(center = self._agent.image.get_rect(topleft = self._agent.position).center)
-        self.window.blit(rotated_image, new_rect.topleft)
+        entity_images = self.render_images()
+        for image, position in entity_images:
+            self.window.blit(image, position)
 
         pygame.display.update()

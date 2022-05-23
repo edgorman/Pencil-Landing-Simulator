@@ -37,6 +37,7 @@ class BaseEnvironment(gym.Env):
         # Set up entities
         self._agent = agent
         self._entities = entities
+        self._entities.append(agent)
 
         # Set up environment
         self._rotation_scale = 0.1
@@ -102,3 +103,22 @@ class BaseEnvironment(gym.Env):
             Returns:
                 None
         '''
+
+    def render_images(self) -> list:
+        '''
+            Render the individual images
+
+            Parameters:
+                None
+            
+            Returns:
+                rotImages: List of the rotated images to render to screen
+        '''
+        rotImages = []
+
+        for entity in self._entities:
+            rotImage = pygame.transform.rotate(entity.image, entity.angle)
+            rotPosition = rotImage.get_rect(center = entity.image.get_rect(topleft = entity.position).center)
+            rotImages.append((rotImage, rotPosition))
+
+        return rotImages

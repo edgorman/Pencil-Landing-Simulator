@@ -6,6 +6,8 @@ from PLSimulator.environments.environment import BaseEnvironment
 from PLSimulator.environments.space import SpaceEnvironment
 from PLSimulator.environments.planet import EarthEnvironment
 from PLSimulator.environments.planet import MarsEnvironment
+from PLSimulator.environments.planet import MoonEnvironment
+
 
 AGENT_OBJCECTS_DICT = {
     'manual': BaseAgent,
@@ -17,6 +19,7 @@ ENVIRONMENT_OBJECTS_DICT = {
     'space': SpaceEnvironment,
     'earth': EarthEnvironment,
     'mars': MarsEnvironment,
+    'moon': MoonEnvironment,
 }
 
 

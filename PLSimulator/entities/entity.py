@@ -40,7 +40,7 @@ class BaseEntity:
         self.velocity = velocity
         self.angle = angle
         self.mass = mass
-        self._isRenderable = isRenderable
+        self.isRenderable = isRenderable
 
         image_path = os.path.join(ASSET_DATA_DIRECTORY, asset_name)
         self.image = pygame.image.load(image_path)
@@ -78,3 +78,15 @@ class BaseEntity:
         # Update heading
         if heading is not None:
             self.angle = heading
+
+    def render(self):
+        '''
+            Render the entity to the screen
+
+            Parameters:
+                None
+
+            Returns:
+                image: Image of the entity
+        '''
+        return self.image
