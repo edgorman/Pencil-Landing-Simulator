@@ -19,6 +19,7 @@ class BaseEntity:
         velocity: tuple = (0, 0),
         angle: float = 0,
         mass: float = 1,
+        entities: list = [],
         isRenderable: bool = True) -> None:
         '''
             Initialise the entity
@@ -30,6 +31,7 @@ class BaseEntity:
                 velocity: Current velocity of entity
                 angle: Current angle of the entity
                 mass: Mass of entity (may change)
+                entities: List of sub entities to render
                 isRenderable: Whether the entity is renderable
 
             Returns:
@@ -40,6 +42,7 @@ class BaseEntity:
         self.velocity = velocity
         self.angle = angle
         self.mass = mass
+        self.entities = entities
         self.isRenderable = isRenderable
 
         image_path = os.path.join(ASSET_DATA_DIRECTORY, asset_name)
@@ -81,12 +84,18 @@ class BaseEntity:
 
     def render(self):
         '''
-            Render the entity to the screen
+            Render the entity and any sub-entities to the window
 
             Parameters:
                 None
 
             Returns:
-                image: Image of the entity
+                image: Rotated image of the entity
+                position: Rotated position of the entity
         '''
-        return self.image
+        rotated_image = pygame.transform.rotate(self.image, self.angle)
+        rotated_position = rotated_image.get_rect(center = self.image.get_rect(topleft = self.position).center)
+
+        # TODO: Render sub-entities in self.entities
+
+        return rotated_image, rotated_position

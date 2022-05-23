@@ -1,9 +1,9 @@
+from turtle import pos
 import gym
 import pygame
 from abc import abstractmethod
 
 from PLSimulator.agents.agent import BaseAgent
-from PLSimulator.entities.entity import BaseEntity
 
 
 class BaseEnvironment(gym.Env):
@@ -19,7 +19,8 @@ class BaseEnvironment(gym.Env):
         agent: BaseAgent,
         entities: list = [],
         width: int = 1600,
-        height: int = 900) -> None:
+        height: int = 900,
+        bg_colour: tuple = (0, 0, 0)) -> None:
         '''
             Initialise the environment
 
@@ -30,6 +31,7 @@ class BaseEnvironment(gym.Env):
                 max_velocity: Max velocity achievable in environment
                 width: Width of the window (default is 1600)
                 height: Height of the window (default is 900)
+                bg_colour: Colour of the background
 
             Returns:
                 None
@@ -46,6 +48,7 @@ class BaseEnvironment(gym.Env):
         # Set up window
         self._window_width = width
         self._window_height = height
+        self._window_bg_colour = bg_colour
 
         # Set up pygame
         pygame.init()
@@ -103,22 +106,10 @@ class BaseEnvironment(gym.Env):
             Returns:
                 None
         '''
-
-    def render_images(self) -> list:
-        '''
-            Render the individual images
-
-            Parameters:
-                None
-            
-            Returns:
-                rotImages: List of the rotated images to render to screen
-        '''
-        rotImages = []
+        self.window.fill(self._window_bg_colour)
 
         for entity in self._entities:
-            rotImage = pygame.transform.rotate(entity.image, entity.angle)
-            rotPosition = rotImage.get_rect(center = entity.image.get_rect(topleft = entity.position).center)
-            rotImages.append((rotImage, rotPosition))
+            image, position = entity.render()
+            self.window.blit(image, position)
 
-        return rotImages
+        pygame.display.update()

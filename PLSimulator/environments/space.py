@@ -17,8 +17,9 @@ class SpaceEnvironment(BaseEnvironment):
         agent: BaseAgent,
         entities: list = [],
         width: int = 1600,
-        height: int = 900):
-        super().__init__(agent, entities, width, height)
+        height: int = 900,
+        bg_colour: tuple = (0, 0, 0)):
+        super().__init__(agent, entities, width, height, bg_colour)
     
     def reset(self):
         self.running = True
@@ -50,12 +51,3 @@ class SpaceEnvironment(BaseEnvironment):
             self._agent.fuel -= 1
 
         return self.state(), 0, False, {}
-    
-    def render(self):
-        self.window.fill((0, 0, 0))
-        
-        entity_images = self.render_images()
-        for image, position in entity_images:
-            self.window.blit(image, position)
-
-        pygame.display.update()
