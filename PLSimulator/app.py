@@ -68,10 +68,8 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
 
         # Convert key presses to actions
         for i in range(len(keys)):
-            if keys[i]:
-                action[i] = 1
-            else:
-                action[i] = 0
+            action[i] = 1 if keys[i] else 0
+            environment._agent.entities[i].isRenderable = keys[i]
 
         # Update the environment with the action
         environment.step(action)

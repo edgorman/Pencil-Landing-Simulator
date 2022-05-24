@@ -1,4 +1,3 @@
-from turtle import pos
 import gym
 import pygame
 from abc import abstractmethod
@@ -98,7 +97,7 @@ class BaseEnvironment(gym.Env):
     @abstractmethod
     def render(self) -> None:
         '''
-            Render the environment to screen
+            Render the entities to window
 
             Paramters:
                 None
@@ -109,7 +108,10 @@ class BaseEnvironment(gym.Env):
         self.window.fill(self._window_bg_colour)
 
         for entity in self._entities:
-            image, position = entity.render()
-            self.window.blit(image, position)
+            if entity.isRenderable:
+                pivot = (entity.position[0] + entity._asset_size[0], entity.position[1] + entity._asset_size[1])
+                images = entity.render(pivot)
+                for image, position in images:
+                    self.window.blit(image, position)
 
         pygame.display.update()

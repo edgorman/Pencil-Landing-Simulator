@@ -100,4 +100,4 @@ class MoonEnvironment(PlanetEnvironment):
         entities: list = [], 
         width: int = 1600, 
         height: int = 900):
-        super().__init__(agent, entities, 0.6, 0, width, height, (237, 237, 237))
+        super().__init__(agent, entities, 0.6, 0, width, height, (169, 169, 169))

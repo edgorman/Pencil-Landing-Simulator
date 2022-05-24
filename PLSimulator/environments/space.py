@@ -1,5 +1,4 @@
 import math
-import pygame
 
 from PLSimulator.agents.agent import BaseAgent
 from PLSimulator.environments.environment import BaseEnvironment

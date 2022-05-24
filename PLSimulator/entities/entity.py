@@ -38,6 +38,7 @@ class BaseEntity:
                 None
         '''
         self._asset_name = asset_name
+        self._asset_size = asset_size
         self.position = position
         self.velocity = velocity
         self.angle = angle
@@ -49,7 +50,7 @@ class BaseEntity:
         self.image = pygame.image.load(image_path)
         self.image = pygame.transform.scale(self.image, asset_size)
 
-    def update_position(self, force: float, heading: float = None):
+    def update_position(self, force: float, heading: float = None) -> None:
         '''
             Update the positional information of the entity
 
@@ -82,7 +83,7 @@ class BaseEntity:
         if heading is not None:
             self.angle = heading
 
-    def render(self):
+    def render(self, pivot: tuple = (0, 0), offset: tuple = (0, 0), angle: float = 0) -> list:
         '''
             Render the entity and any sub-entities to the window
 
@@ -90,12 +91,20 @@ class BaseEntity:
                 None
 
             Returns:
-                image: Rotated image of the entity
-                position: Rotated position of the entity
+                images: List of rotated images to render
         '''
-        rotated_image = pygame.transform.rotate(self.image, self.angle)
-        rotated_position = rotated_image.get_rect(center = self.image.get_rect(topleft = self.position).center)
+        images = []
 
-        # TODO: Render sub-entities in self.entities
+        # Render entity
+        rotated_image = pygame.transform.rotozoom(self.image, self.angle + angle, 1)
+        rotated_offset = pygame.math.Vector2(offset).rotate(-(self.angle + angle))
+        rotated_rect = rotated_image.get_rect(center = pygame.math.Vector2(pivot) + rotated_offset)
 
-        return rotated_image, rotated_position
+        images.append((rotated_image, rotated_rect))
+
+        # Render sub-entities that are renderable
+        for entity in self.entities:
+            if entity.isRenderable:
+                images.extend(entity.render(pivot, entity.position, self.angle + angle))
+
+        return images

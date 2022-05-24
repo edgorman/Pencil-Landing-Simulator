@@ -27,7 +27,12 @@ class BaseAgent(BaseEntity):
             Returns:
                 None
         '''
-        super().__init__(asset_name, (16, 128), position, velocity, angle, mass, True)
+        entities = [
+            BaseEntity('engine firing.png', (16, 80), (0, 84), (0, 0), 0, 0, [], False),
+            BaseEntity('rcs firing.png', (16, 16), (14, 53), (0, 0), 180, 0, [], False),
+            BaseEntity('rcs firing.png', (16, 16), (14, -53), (0, 0), 0, 0, [], False),
+        ]
+        super().__init__(asset_name, (16, 128), position, velocity, angle, mass, entities, True)
         
         # Set up extra parameters
         self.fuel = fuel
