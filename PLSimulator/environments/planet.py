@@ -18,8 +18,9 @@ class PlanetEnvironment(SpaceEnvironment):
         gravity: float = 1,
         density: float = 1,
         width: int = 1600,
-        height: int = 900):
-        super().__init__(agent, entities, width, height)
+        height: int = 900,
+        bg_colour: tuple = (0, 0, 0)):
+        super().__init__(agent, entities, width, height, bg_colour)
 
         self._gravity = gravity
         self._density = density
@@ -67,14 +68,14 @@ class EarthEnvironment(PlanetEnvironment):
         entities: list = [], 
         width: int = 1600, 
         height: int = 900):
-        super().__init__(agent, entities, 0.98, 0.1, width, height)
-
+        super().__init__(agent, entities, 9.8, 1, width, height, (137, 207, 240))
+    
 
 class MarsEnvironment(PlanetEnvironment):
     '''
         MarsEnvironment
 
-        This environment models an Mars environment
+        This environment models a Mars environment
     '''
 
     def __init__(
@@ -83,4 +84,20 @@ class MarsEnvironment(PlanetEnvironment):
         entities: list = [], 
         width: int = 1600, 
         height: int = 900):
-        super().__init__(agent, entities, 0.49, 0.05, width, height)
+        super().__init__(agent, entities, 4.9, 0.1, width, height, (110, 38, 14))
+
+
+class MoonEnvironment(PlanetEnvironment):
+    '''
+        MoonEnvironment
+
+        This environment models a Moon environment
+    '''
+
+    def __init__(
+        self, 
+        agent: BaseAgent, 
+        entities: list = [], 
+        width: int = 1600, 
+        height: int = 900):
+        super().__init__(agent, entities, 0.6, 0, width, height, (169, 169, 169))

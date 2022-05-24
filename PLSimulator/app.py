@@ -6,6 +6,8 @@ from PLSimulator.environments.environment import BaseEnvironment
 from PLSimulator.environments.space import SpaceEnvironment
 from PLSimulator.environments.planet import EarthEnvironment
 from PLSimulator.environments.planet import MarsEnvironment
+from PLSimulator.environments.planet import MoonEnvironment
+
 
 AGENT_OBJCECTS_DICT = {
     'manual': BaseAgent,
@@ -17,6 +19,7 @@ ENVIRONMENT_OBJECTS_DICT = {
     'space': SpaceEnvironment,
     'earth': EarthEnvironment,
     'mars': MarsEnvironment,
+    'moon': MoonEnvironment,
 }
 
 
@@ -65,10 +68,8 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
 
         # Convert key presses to actions
         for i in range(len(keys)):
-            if keys[i]:
-                action[i] = 1.5
-            else:
-                action[i] = 0
+            action[i] = 1 if keys[i] else 0
+            environment._agent.entities[i].isRenderable = keys[i]
 
         # Update the environment with the action
         environment.step(action)

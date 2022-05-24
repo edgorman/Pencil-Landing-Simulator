@@ -3,7 +3,6 @@ import pygame
 from abc import abstractmethod
 
 from PLSimulator.agents.agent import BaseAgent
-from PLSimulator.entities.entity import BaseEntity
 
 
 class BaseEnvironment(gym.Env):
@@ -19,7 +18,8 @@ class BaseEnvironment(gym.Env):
         agent: BaseAgent,
         entities: list = [],
         width: int = 1600,
-        height: int = 900) -> None:
+        height: int = 900,
+        bg_colour: tuple = (0, 0, 0)) -> None:
         '''
             Initialise the environment
 
@@ -30,6 +30,7 @@ class BaseEnvironment(gym.Env):
                 max_velocity: Max velocity achievable in environment
                 width: Width of the window (default is 1600)
                 height: Height of the window (default is 900)
+                bg_colour: Colour of the background
 
             Returns:
                 None
@@ -37,14 +38,16 @@ class BaseEnvironment(gym.Env):
         # Set up entities
         self._agent = agent
         self._entities = entities
+        self._entities.append(agent)
 
         # Set up environment
-        self._rotation_scale = 1.69
-        self._force_scale = 0.69
+        self._rotation_scale = 0.1
+        self._force_scale = 0.05
 
         # Set up window
         self._window_width = width
         self._window_height = height
+        self._window_bg_colour = bg_colour
 
         # Set up pygame
         pygame.init()
@@ -91,10 +94,9 @@ class BaseEnvironment(gym.Env):
                 info: Any extra information about environment
         '''
 
-    @abstractmethod
     def render(self) -> None:
         '''
-            Render the environment to screen
+            Render the entities to window
 
             Paramters:
                 None
@@ -102,3 +104,13 @@ class BaseEnvironment(gym.Env):
             Returns:
                 None
         '''
+        self.window.fill(self._window_bg_colour)
+
+        for entity in self._entities:
+            if entity.isRenderable:
+                pivot = (entity.position[0] + entity._asset_size[0], entity.position[1] + entity._asset_size[1])
+                images = entity.render(pivot)
+                for image, position in images:
+                    self.window.blit(image, position)
+
+        pygame.display.update()
