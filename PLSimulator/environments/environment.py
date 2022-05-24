@@ -94,7 +94,6 @@ class BaseEnvironment(gym.Env):
                 info: Any extra information about environment
         '''
 
-    @abstractmethod
     def render(self) -> None:
         '''
             Render the entities to window
