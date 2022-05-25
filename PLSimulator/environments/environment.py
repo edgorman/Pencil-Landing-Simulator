@@ -1,5 +1,6 @@
 import gym
 import pygame
+from pygame import Vector2
 from abc import abstractmethod
 
 from PLSimulator.agents.agent import BaseAgent
@@ -108,7 +109,7 @@ class BaseEnvironment(gym.Env):
 
         for entity in self._entities:
             if entity.isRenderable:
-                pivot = (entity.position[0] + entity._asset_size[0], entity.position[1] + entity._asset_size[1])
+                pivot = entity.position + entity._asset_size
                 images = entity.render(pivot)
                 for image, position in images:
                     self.window.blit(image, position)

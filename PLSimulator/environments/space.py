@@ -1,4 +1,5 @@
 import math
+from pygame import Vector2
 
 from PLSimulator.agents.agent import BaseAgent
 from PLSimulator.environments.environment import BaseEnvironment
@@ -39,10 +40,7 @@ class SpaceEnvironment(BaseEnvironment):
         
         # Move agent under it's own thrust
         heading = self._agent.angle + left + right
-        thrust = (
-            thrust * math.sin(math.radians(heading)),
-            thrust * math.cos(math.radians(heading))
-        )
+        thrust = thrust * Vector2(math.sin(math.radians(heading)), math.cos(math.radians(heading)))
         self._agent.update_position(thrust, heading)
 
         # Remove fuel from agent if fired engine

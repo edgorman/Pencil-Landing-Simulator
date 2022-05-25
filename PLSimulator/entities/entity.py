@@ -1,5 +1,6 @@
 import os
 import pygame
+from pygame import Vector2
 
 from PLSimulator.constants import ASSET_DATA_DIRECTORY
 
@@ -15,8 +16,8 @@ class BaseEntity:
         self,
         asset_name: str,
         asset_size: tuple,
-        position: tuple = (0, 0),
-        velocity: tuple = (0, 0),
+        position: Vector2 = Vector2(0, 0),
+        velocity: Vector2 = Vector2(0, 0),
         angle: float = 0,
         mass: float = 1,
         entities: list = [],
@@ -50,7 +51,7 @@ class BaseEntity:
         self.image = pygame.image.load(image_path)
         self.image = pygame.transform.scale(self.image, asset_size)
 
-    def update_position(self, force: float, heading: float = None) -> None:
+    def update_position(self, force: Vector2, heading: float = None) -> None:
         '''
             Update the positional information of the entity
 
@@ -62,33 +63,26 @@ class BaseEntity:
                 None
         '''
         # Calculate acceleration: A = F/M
-        acceleration = (
-            force[0] / self.mass,
-            force[1] / self.mass,
-        )
+        acceleration = force / self.mass
 
         # Update velocity
-        self.velocity = (
-            self.velocity[0] + acceleration[0],
-            self.velocity[1] + acceleration[1],
-        )
+        self.velocity += acceleration
 
         # Update position
-        self.position = (
-            self.position[0] + self.velocity[0],
-            self.position[1] + self.velocity[1],
-        )
+        self.position += self.velocity
 
         # Update heading
         if heading is not None:
             self.angle = heading
 
-    def render(self, pivot: tuple = (0, 0), offset: tuple = (0, 0), angle: float = 0) -> list:
+    def render(self, pivot: Vector2 = Vector2(0, 0), offset: Vector2 = Vector2(0, 0), angle: float = 0) -> list:
         '''
             Render the entity and any sub-entities to the window
 
             Parameters:
-                None
+                pivot: Position around which to rate
+                offset: Offset from the pivot to place image
+                angle: Heading of the image relative to parent
 
             Returns:
                 images: List of rotated images to render
@@ -97,8 +91,8 @@ class BaseEntity:
 
         # Render entity
         rotated_image = pygame.transform.rotozoom(self.image, self.angle + angle, 1)
-        rotated_offset = pygame.math.Vector2(offset).rotate(-(self.angle + angle))
-        rotated_rect = rotated_image.get_rect(center = pygame.math.Vector2(pivot) + rotated_offset)
+        rotated_offset = offset.rotate(-(self.angle + angle))
+        rotated_rect = rotated_image.get_rect(center = pivot + rotated_offset)
 
         images.append((rotated_image, rotated_rect))
 
