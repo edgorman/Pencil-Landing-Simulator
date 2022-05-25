@@ -1,4 +1,5 @@
 import math
+from pygame import Vector2
 
 from PLSimulator.agents.agent import BaseAgent
 from PLSimulator.environments.space import SpaceEnvironment
@@ -34,22 +35,14 @@ class PlanetEnvironment(SpaceEnvironment):
     
     def step(self, action):
         # Move agent under gravity
-        gravity = (0, self._gravity * self._force_scale)
-        self._agent.update_position(gravity)
+        gravity = self._force_scale * Vector2(0, self._gravity)
 
         # Move agent under drag: Fd = 0.5 * Cd * A * p * V^2
-        drag = (
-            0.5 * 0.82 * 1 * self._density * self._agent.velocity[0]**2,
-            0.5 * 0.47 * 1 * self._density * self._agent.velocity[1]**2
-        )
-        drag = (
-            -math.copysign(drag[0], self._agent.velocity[0]) * self._force_scale,
-            -math.copysign(drag[1], self._agent.velocity[1]) * self._force_scale,
-
-        )
-        self._agent.update_position(drag)
+        drag = 0.5 * 0.82 * 1 * self._density * Vector2(self._agent.velocity[0]**2, self._agent.velocity[1]**2)
+        drag = self._force_scale * self._agent.velocity.rotate(180)
 
         # Move agent under parents forces/actions
+        self._agent.update_position(gravity + drag)
         _, _, _, _ = super().step(action)
 
         return self.state(), 0, False, {}

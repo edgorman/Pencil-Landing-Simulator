@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from pygame import Vector2
 
 from PLSimulator.entities.entity import BaseEntity
 
@@ -13,8 +14,8 @@ class BaseAgent(BaseEntity):
     def __init__(
         self,
         asset_name: str = 'pencil.png',
-        position: tuple = (0, 0),
-        velocity: tuple = (0, 0),
+        position: Vector2 = Vector2(0, 0),
+        velocity: Vector2 = Vector2(0, 0),
         angle: float = 0,
         mass: float = 10,
         fuel: float = 1000) -> None:
@@ -28,11 +29,11 @@ class BaseAgent(BaseEntity):
                 None
         '''
         entities = [
-            BaseEntity('engine firing.png', (16, 80), (0, 84), (0, 0), 0, 0, [], False),
-            BaseEntity('rcs firing.png', (16, 16), (14, 53), (0, 0), 180, 0, [], False),
-            BaseEntity('rcs firing.png', (16, 16), (14, -53), (0, 0), 0, 0, [], False),
+            BaseEntity('engine firing.png', Vector2(16, 80), Vector2(0, 84), Vector2(0, 0), 0, 0, [], False),
+            BaseEntity('rcs firing.png', Vector2(16, 16), Vector2(14, 53), Vector2(0, 0), 180, 0, [], False),
+            BaseEntity('rcs firing.png', Vector2(16, 16), Vector2(14, -53), Vector2(0, 0), 0, 0, [], False),
         ]
-        super().__init__(asset_name, (16, 128), position, velocity, angle, mass, entities, True)
+        super().__init__(asset_name, Vector2(16, 128), position, velocity, angle, mass, entities, True)
         
         # Set up extra parameters
         self.fuel = fuel
@@ -53,8 +54,8 @@ class BaseAgent(BaseEntity):
 
     def reset(
         self,
-        position: tuple = (0, 0),
-        velocity: tuple = (0, 0),
+        position: Vector2 = Vector2(0, 0),
+        velocity: Vector2 = Vector2(0, 0),
         angle: float = 0,
         fuel: float = 100) -> None:
         '''
