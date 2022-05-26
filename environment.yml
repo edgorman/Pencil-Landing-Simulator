@@ -28,6 +28,8 @@ dependencies:
   - mock
   - colorama
   - setuptools
+  - redis
   - pip:
     - pygame==2.1.2
+    - ray[rllib]
 prefix: C:\Users\edgor\anaconda3\envs\PLSimulator

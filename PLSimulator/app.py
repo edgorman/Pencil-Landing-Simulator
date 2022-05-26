@@ -1,7 +1,10 @@
 import pygame
+import ray
+from ray.tune.registry import register_env
 
 from PLSimulator.log import Log
 from PLSimulator.agents.agent import BaseAgent
+from PLSimulator.agents.ppo import PPOAgent
 from PLSimulator.environments.environment import BaseEnvironment
 from PLSimulator.environments.space import SpaceEnvironment
 from PLSimulator.environments.planet import EarthEnvironment
@@ -11,8 +14,8 @@ from PLSimulator.environments.planet import MoonEnvironment
 
 AGENT_OBJCECTS_DICT = {
     'manual': BaseAgent,
+    'ppo': PPOAgent,
     'dqn': BaseAgent,  # TODO
-    'ppo': BaseAgent,  # TODO
 }
 
 ENVIRONMENT_OBJECTS_DICT = {
@@ -102,10 +105,11 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
     # Iterate until environment has finished
     while environment.running:
         # Step through environment once
-        state = environment.state(agent)
+        state = environment.state()
 
         # Get action of the agent
         action = agent.get_action(state)
+        print(action)
 
         # Update the environment with the action
         state, reward, done, info = environment.step(action)
@@ -128,16 +132,26 @@ def main(args: dict) -> None:
         Returns:
             None
     '''
-
     # Initialise the agent and environment
     agent = AGENT_OBJCECTS_DICT[args.agent]()
     environment = ENVIRONMENT_OBJECTS_DICT[args.env](agent)
 
-    # Simulate the environment
+    # Let user control agent and play in environment
     if args.agent == 'manual':
         Log.info("Loading the environment in manual mode.")
         manual(environment)
+    # Train and simulate an agent
     else:
+        Log.info("Loading and intialising Ray.")
+        ray.init()
+        make_env = lambda agent : ENVIRONMENT_OBJECTS_DICT[args.env](agent)
+        register_env("pls-env", make_env)
+        Log.success("Finished loading and initialising Ray.")
+
+        Log.info("Training RL agent.")
+        agent.train("pls-env")
+        Log.success("Finished training RL agent.")
+
         Log.info("Loading the environment for RL agent.")
         simulate(agent, environment)
 
