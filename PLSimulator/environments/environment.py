@@ -1,7 +1,9 @@
 import gym
 import pygame
-from pygame import Vector2
+import numpy as np
 from abc import abstractmethod
+from gym.spaces import Discrete
+from gym.spaces import Box
 
 from PLSimulator.agents.agent import BaseAgent
 
@@ -40,10 +42,12 @@ class BaseEnvironment(gym.Env):
         self._agent = agent
         self._entities = entities
         self._entities.append(agent)
-
-        # Set up environment
         self._rotation_scale = 0.1
         self._force_scale = 0.05
+
+        # Set up environment
+        self.action_space = Discrete(3)
+        self.observation_space = Box(np.array([-1, 0, 0]), np.array([1, 1, 1]))
 
         # Set up window
         self._window_width = width

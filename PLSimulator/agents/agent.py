@@ -86,3 +86,27 @@ class BaseAgent(BaseEntity):
             Returns
                 action: Action of the agent in environment
         '''
+
+    @abstractmethod
+    def get_saved(self) -> None:
+        '''
+            Load the model from a saved file
+
+            Parameters:
+                None
+
+            Returns
+                None
+        '''
+
+    @abstractmethod
+    def train(self) -> None:
+        '''
+            Train the model from in the environment
+
+            Parameters:
+                None
+
+            Returns
+                None
+        '''
