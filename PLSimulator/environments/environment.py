@@ -1,8 +1,9 @@
+import os
 import gym
 import pygame
-from pygame import Vector2
 from abc import abstractmethod
 
+from PLSimulator.constants import ASSET_DATA_DIRECTORY
 from PLSimulator.agents.agent import BaseAgent
 
 
@@ -56,6 +57,11 @@ class BaseEnvironment(gym.Env):
         self.window = pygame.display.set_mode((self._window_width, self._window_height))
         self.clock = pygame.time.Clock()
 
+        image_path = os.path.join(ASSET_DATA_DIRECTORY, 'pencil.png')
+        self._icon = pygame.image.load(image_path).subsurface(0, 0, 16, 16)
+        pygame.display.set_icon(self._icon)
+        pygame.display.set_caption('Pencil Landing Simulator')
+
     @abstractmethod
     def reset(self) -> list:
         '''
@@ -81,7 +87,7 @@ class BaseEnvironment(gym.Env):
         '''
 
     @abstractmethod
-    def step(self, action: list) -> list:
+    def step(self, action: list) -> tuple:
         '''
             Step the environment given an action by agent
 
