@@ -87,7 +87,7 @@ class BaseEnvironment(gym.Env):
         '''
 
     @abstractmethod
-    def step(self, action: list) -> list:
+    def step(self, action: list) -> tuple:
         '''
             Step the environment given an action by agent
 

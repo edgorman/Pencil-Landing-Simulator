@@ -36,6 +36,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
     '''
     # Set up environment
     environment.reset()
+    Log.info("User has started the simulation.")
 
     # Store which keys have been pressed down or up
     action = [0, 0, 0]
@@ -72,11 +73,14 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
             environment._agent.entities[i].isRenderable = keys[i]
 
         # Update the environment with the action
-        environment.step(action)
+        state, reward, done, info = environment.step(action)
 
         # Render environment at N fps
-        environment.render()
-        environment.clock.tick(fps)
+        if fps > 0:
+            environment.render()
+            environment.clock.tick(fps)
+        Log.info(f"State: {state}, Action: {action}, Reward: {reward}, Done: {done}.")
+    Log.success("Agent has finished the simulation.")
 
 
 def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> None:
@@ -93,6 +97,7 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
     '''
     # Set up environment
     environment.reset()
+    Log.info("Agent has started the simulation.")
 
     # Iterate until environment has finished
     while environment.running:
@@ -103,11 +108,14 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
         action = agent.get_action(state)
 
         # Update the environment with the action
-        environment.step(action)
+        state, reward, done, info = environment.step(action)
 
         # Render environment at N fps
-        environment.render()
-        environment.clock.tick(fps)
+        if fps > 0:
+            environment.render()
+            environment.clock.tick(fps)
+        Log.info(f"State: {state}, Action: {action}, Reward: {reward}, Done: {done}.")
+    Log.success(f"Agent has finished the simulation.")
 
 
 def main(args: dict) -> None:
@@ -127,6 +135,10 @@ def main(args: dict) -> None:
 
     # Simulate the environment
     if args.agent == 'manual':
+        Log.info("Loading the environment in manual mode.")
         manual(environment)
     else:
+        Log.info("Loading the environment for RL agent.")
         simulate(agent, environment)
+
+    Log.success("Exiting application.")
