@@ -1,12 +1,11 @@
-import pygame
 import ray
-from ray.tune.registry import register_env
+import json
+import pygame
 
 from PLSimulator.log import Log
 from PLSimulator.agents.agent import BaseAgent
 from PLSimulator.agents.ppo import PPOAgent
 from PLSimulator.environments.environment import BaseEnvironment
-from PLSimulator.environments.space import SpaceEnvironment
 from PLSimulator.environments.planet import EarthEnvironment
 from PLSimulator.environments.planet import MarsEnvironment
 from PLSimulator.environments.planet import MoonEnvironment
@@ -19,7 +18,6 @@ AGENT_OBJCECTS_DICT = {
 }
 
 ENVIRONMENT_OBJECTS_DICT = {
-    'space': SpaceEnvironment,
     'earth': EarthEnvironment,
     'mars': MarsEnvironment,
     'moon': MoonEnvironment,
@@ -109,7 +107,6 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
 
         # Get action of the agent
         action = agent.get_action(state)
-        print(action)
 
         # Update the environment with the action
         state, reward, done, info = environment.step(action)
@@ -120,6 +117,46 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
             environment.clock.tick(fps)
         Log.info(f"State: {state}, Action: {action}, Reward: {reward}, Done: {done}.")
     Log.success(f"Agent has finished the simulation.")
+
+
+def train(agent: BaseAgent, environment: BaseEnvironment) -> BaseAgent:
+    '''
+        Train the agent in the environment given
+
+        Parameters:
+            agent: The agent to train in the environment
+            environment: The environment to run the agent in
+
+        Returns:
+            None
+    '''
+    Log.info("Loading Ray...")
+    info = ray.init(ignore_reinit_error=True)
+    Log.success(f"Loaded dashboard at http://{info['webui_url']}")
+
+    results = []
+    episode_data = []
+    episode_json = []
+
+    Log.info("Clearing previous training...")
+    agent.clear()
+
+    Log.info("Starting training...")
+    num_iter = 10
+    for n in range(num_iter):
+        result = agent.train()
+        results.append(result)
+
+        episode = {'n': n, 
+               'episode_reward_min': result['episode_reward_min'], 
+               'episode_reward_mean': result['episode_reward_mean'], 
+               'episode_reward_max': result['episode_reward_max'],  
+               'episode_len_mean': result['episode_len_mean']}
+    
+        episode_data.append(episode)
+        episode_json.append(json.dumps(episode))
+        agent.save()
+    Log.success("Finished training agent.")
 
 
 def main(args: dict) -> None:
@@ -142,14 +179,8 @@ def main(args: dict) -> None:
         manual(environment)
     # Train and simulate an agent
     else:
-        Log.info("Loading and intialising Ray.")
-        ray.init()
-        make_env = lambda agent : ENVIRONMENT_OBJECTS_DICT[args.env](agent)
-        register_env("pls-env", make_env)
-        Log.success("Finished loading and initialising Ray.")
-
-        Log.info("Training RL agent.")
-        agent.train("pls-env")
+        Log.info("Train RL agent.")
+        train(agent, environment)
         Log.success("Finished training RL agent.")
 
         Log.info("Loading the environment for RL agent.")

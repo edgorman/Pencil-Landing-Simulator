@@ -15,16 +15,27 @@ class PPOAgent(BaseAgent):
 
         self.model = None
     
-    def get_action(self, state: list) -> list:
+    def init_model(self, env):
+        config = ppo.DEFAULT_CONFIG.copy()
+        config["log_level"] = "WARN"
+        config["num_workers"] = 1
+        config["num_sgd_iter"] = 10
+        config["sgd_minibatch_size"] = 250
+
+        self.model = ppo.PPOTrainer(config, env)
+    
+    def train(self):
+        return self.model.train()
+    
+    def step(self, state: list) -> list:
         return self.model.compute_action(state)
 
-    def get_saved(self):
+    def save(self):
+        self.model.save(self.model_dir)
+    
+    def load(self):
         return None
-
-    def train(self, environment_name):
-        self.model = ppo.PPOTrainer(env=environment_name)
-
-        # for i in range(100):
-        #     self.model.train()
-        #     print(i)
-        # print("training complete")
+    
+    def clear(self):
+        super().clear("ppo")
+        self.init_model()

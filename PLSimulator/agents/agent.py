@@ -1,7 +1,9 @@
+import os
 from abc import abstractmethod
 from pygame import Vector2
 
 from PLSimulator.entities.entity import BaseEntity
+from PLSimulator.test import MODEL_DATA_DIRECTORY
 
 
 class BaseAgent(BaseEntity):
@@ -76,7 +78,19 @@ class BaseAgent(BaseEntity):
         self.fuel = fuel
 
     @abstractmethod
-    def get_action(self, state: list) -> list:
+    def train(self) -> dict:
+        '''
+            Train the model from in the environment
+
+            Parameters:
+                None
+
+            Returns
+                Result: Metrics from training
+        '''
+    
+    @abstractmethod
+    def step(self, state: list) -> list:
         '''
             Get the action of the agent given an environment state
 
@@ -88,7 +102,19 @@ class BaseAgent(BaseEntity):
         '''
 
     @abstractmethod
-    def get_saved(self) -> None:
+    def save(self) -> None:
+        '''
+            Save the model to a local folder
+
+            Parameters:
+                None
+
+            Returns
+                None
+        '''
+    
+    @abstractmethod
+    def load(self) -> None:
         '''
             Load the model from a saved file
 
@@ -99,14 +125,18 @@ class BaseAgent(BaseEntity):
                 None
         '''
 
-    @abstractmethod
-    def train(self) -> None:
+        
+    def clear(self, sub_dir: str = '') -> None:
         '''
-            Train the model from in the environment
+            Clear the saved model parameters from local folder
 
             Parameters:
-                None
+                sub_dir: Current sub directory
 
             Returns
                 None
         '''
+        dir = os.path.join(MODEL_DATA_DIRECTORY, sub_dir)
+        for f in os.listdir(dir):
+            a = os.path.join(dir, f)
+            self.clear(a) if os.path.isdir(a) else os.remove(a)
