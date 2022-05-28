@@ -38,4 +38,3 @@ class PPOAgent(BaseAgent):
     
     def clear(self):
         super().clear("ppo")
-        self.init_model()

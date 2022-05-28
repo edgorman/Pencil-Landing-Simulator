@@ -49,7 +49,11 @@ class BaseEnvironment(gym.Env):
 
         # Set up environment
         self.action_space = Discrete(3)
-        self.observation_space = Box(np.array([-1, 0, 0]), np.array([1, 1, 1]))
+        self.observation_space = Box(
+            np.array([-1, 0, 0, 0], dtype=np.float32),
+            np.array([1, 1, 1, 1], dtype=np.float32),
+            dtype=np.float32
+        )
 
         # Set up window
         self._window_width = width

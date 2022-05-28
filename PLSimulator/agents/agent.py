@@ -3,7 +3,7 @@ from abc import abstractmethod
 from pygame import Vector2
 
 from PLSimulator.entities.entity import BaseEntity
-from PLSimulator.test import MODEL_DATA_DIRECTORY
+from PLSimulator.constants import MODEL_DATA_DIRECTORY
 
 
 class BaseAgent(BaseEntity):

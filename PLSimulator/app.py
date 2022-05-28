@@ -1,6 +1,7 @@
 import ray
 import json
 import pygame
+from gym.envs.registration import register
 
 from PLSimulator.log import Log
 from PLSimulator.agents.agent import BaseAgent
@@ -106,7 +107,7 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
         state = environment.state()
 
         # Get action of the agent
-        action = agent.get_action(state)
+        action = agent.step(state)
 
         # Update the environment with the action
         state, reward, done, info = environment.step(action)
@@ -140,6 +141,7 @@ def train(agent: BaseAgent, environment: BaseEnvironment) -> BaseAgent:
 
     Log.info("Clearing previous training...")
     agent.clear()
+    agent.init_model(environment)
 
     Log.info("Starting training...")
     num_iter = 10
@@ -169,21 +171,19 @@ def main(args: dict) -> None:
         Returns:
             None
     '''
-    # Initialise the agent and environment
     agent = AGENT_OBJCECTS_DICT[args.agent]()
-    environment = ENVIRONMENT_OBJECTS_DICT[args.env](agent)
+    environment = ENVIRONMENT_OBJECTS_DICT[args.env](agent, width=1280, height=720)
+    register(id=args.env+"-v0", entry_point=ENVIRONMENT_OBJECTS_DICT[args.env])
 
-    # Let user control agent and play in environment
     if args.agent == 'manual':
         Log.info("Loading the environment in manual mode.")
         manual(environment)
-    # Train and simulate an agent
     else:
         Log.info("Train RL agent.")
-        train(agent, environment)
+        train(agent, ENVIRONMENT_OBJECTS_DICT[args.env])
         Log.success("Finished training RL agent.")
 
-        Log.info("Loading the environment for RL agent.")
+        Log.info("Loading the environment in agent mode.")
         simulate(agent, environment)
 
     Log.success("Exiting application.")
