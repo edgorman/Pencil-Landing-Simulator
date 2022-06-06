@@ -10,28 +10,25 @@ class PPOAgent(BaseAgent):
         This agent uses a PPO model for training and controlling the agent
     '''
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, env_name):
+        super().__init__("ppo")
 
-        self.model = None
-    
-    def init_model(self, env):
         config = ppo.DEFAULT_CONFIG.copy()
         config["log_level"] = "WARN"
         config["num_workers"] = 1
         config["num_sgd_iter"] = 10
         config["sgd_minibatch_size"] = 250
 
-        self.model = ppo.PPOTrainer(config, env)
+        self.model = ppo.PPOTrainer(config, env_name)
     
     def train(self):
         return self.model.train()
     
     def step(self, state: list) -> list:
-        return self.model.compute_action(state)
+        return self.model.compute_single_action(state)
 
     def save(self):
-        self.model.save(self.model_dir)
+        self.model.save(self._model_dir)
     
     def load(self):
         return None

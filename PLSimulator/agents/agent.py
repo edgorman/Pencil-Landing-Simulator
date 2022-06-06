@@ -11,7 +11,7 @@ class BaseAgent:
         This is the agent class from which all other agents will inherit.
     '''
 
-    def __init__(self) -> None:
+    def __init__(self, model_name) -> None:
         '''
             Initialise the agent.
 
@@ -21,6 +21,7 @@ class BaseAgent:
             Returns:
                 None
         '''
+        self._model_dir = os.path.join(MODEL_DATA_DIRECTORY, model_name)
 
     @abstractmethod
     def reset(self) -> None:
@@ -94,5 +95,8 @@ class BaseAgent:
         '''
         dir = os.path.join(MODEL_DATA_DIRECTORY, sub_dir)
         for f in os.listdir(dir):
+            if f == ".gitkeep":
+                continue
+            
             a = os.path.join(dir, f)
             self.clear(a) if os.path.isdir(a) else os.remove(a)

@@ -3,7 +3,6 @@ import gym
 import pygame
 import numpy as np
 from abc import abstractmethod
-from gym.spaces import Discrete
 from gym.spaces import Box
 from pygame import Vector2
 
@@ -55,7 +54,11 @@ class BaseEnvironment(gym.Env):
         self._force_scale = 0.05
 
         # Set up environment
-        self.action_space = Discrete(3)
+        self.action_space = Box(
+            np.array([0, 0, 0], dtype=np.float32),
+            np.array([1, 1, 1], dtype=np.float32),
+            dtype=np.float32
+        )
         self.observation_space = Box(
             np.array([-1, 0, 0, 0], dtype=np.float32),
             np.array([1, 1, 1, 1], dtype=np.float32),
