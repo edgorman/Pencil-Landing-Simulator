@@ -1,9 +1,12 @@
+import ray
+import json
 import pygame
+from ray.tune.registry import register_env
 
 from PLSimulator.log import Log
 from PLSimulator.agents.agent import BaseAgent
+from PLSimulator.agents.ppo import PPOAgent
 from PLSimulator.environments.environment import BaseEnvironment
-from PLSimulator.environments.space import SpaceEnvironment
 from PLSimulator.environments.planet import EarthEnvironment
 from PLSimulator.environments.planet import MarsEnvironment
 from PLSimulator.environments.planet import MoonEnvironment
@@ -11,12 +14,11 @@ from PLSimulator.environments.planet import MoonEnvironment
 
 AGENT_OBJCECTS_DICT = {
     'manual': BaseAgent,
+    'ppo': PPOAgent,
     'dqn': BaseAgent,  # TODO
-    'ppo': BaseAgent,  # TODO
 }
 
 ENVIRONMENT_OBJECTS_DICT = {
-    'space': SpaceEnvironment,
     'earth': EarthEnvironment,
     'mars': MarsEnvironment,
     'moon': MoonEnvironment,
@@ -70,7 +72,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
         # Convert key presses to actions
         for i in range(len(keys)):
             action[i] = 1 if keys[i] else 0
-            environment._agent.entities[i].isRenderable = keys[i]
+            environment._pencil.entities[i].isRenderable = keys[i]
 
         # Update the environment with the action
         state, reward, done, info = environment.step(action)
@@ -102,10 +104,14 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
     # Iterate until environment has finished
     while environment.running:
         # Step through environment once
-        state = environment.state(agent)
+        state = environment.state()
 
         # Get action of the agent
-        action = agent.get_action(state)
+        action = agent.step(state)
+
+        # Toggle pencil sub entities on/off
+        for i in range(len(action)):
+            environment._pencil.entities[i].isRenderable = abs(action[i]) > 0
 
         # Update the environment with the action
         state, reward, done, info = environment.step(action)
@@ -118,6 +124,45 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
     Log.success(f"Agent has finished the simulation.")
 
 
+def train(agent: BaseAgent) -> BaseAgent:
+    '''
+        Train the agent in the environment given
+
+        Parameters:
+            agent: The agent to train in the environment
+
+        Returns:
+            None
+    '''
+    Log.info("Loading Ray...")
+    info = ray.init(ignore_reinit_error=True)
+    Log.success(f"Loaded dashboard at http://{info['webui_url']}")
+
+    results = []
+    episode_data = []
+    episode_json = []
+
+    Log.info("Clearing previous training...")
+    agent.clear()
+
+    Log.info("Starting training...")
+    num_iter = 10
+    for n in range(num_iter):
+        result = agent.train()
+        results.append(result)
+
+        episode = {'n': n, 
+               'episode_reward_min': result['episode_reward_min'], 
+               'episode_reward_mean': result['episode_reward_mean'], 
+               'episode_reward_max': result['episode_reward_max'],  
+               'episode_len_mean': result['episode_len_mean']}
+    
+        episode_data.append(episode)
+        episode_json.append(json.dumps(episode))
+        agent.save()
+    Log.success("Finished training agent.")
+
+
 def main(args: dict) -> None:
     '''
         Process the arguments and determine the top-level functions to execute
@@ -128,17 +173,26 @@ def main(args: dict) -> None:
         Returns:
             None
     '''
+    agent = AGENT_OBJCECTS_DICT[args.agent]
+    environment = ENVIRONMENT_OBJECTS_DICT[args.env]
 
-    # Initialise the agent and environment
-    agent = AGENT_OBJCECTS_DICT[args.agent]()
-    environment = ENVIRONMENT_OBJECTS_DICT[args.env](agent)
-
-    # Simulate the environment
     if args.agent == 'manual':
         Log.info("Loading the environment in manual mode.")
-        manual(environment)
+        manual(environment())
     else:
-        Log.info("Loading the environment for RL agent.")
-        simulate(agent, environment)
+        Log.info("Registering RL environment.")
+        register_env(args.env+"-v0", lambda config: environment())
+        Log.success("Finished registering RL environment.")
+
+        Log.info("Initialise RL agent.")
+        agent = agent(args.env+"-v0")
+        Log.success("Finished initialising RL agent.")
+
+        Log.info("Train RL agent.")
+        # train(agent, ENVIRONMENT_OBJECTS_DICT[args.env])
+        Log.success("Finished training RL agent.")
+
+        Log.info("Loading the environment in agent mode.")
+        simulate(agent, environment())
 
     Log.success("Exiting application.")
