@@ -181,7 +181,6 @@ def main(args: dict) -> None:
         manual(environment())
     else:
         Log.info("Registering RL environment.")
-        # register(id=args.env+"-v0", entry_point=ENVIRONMENT_OBJECTS_DICT[args.env])
         register_env(args.env+"-v0", lambda config: environment())
         Log.success("Finished registering RL environment.")
 
