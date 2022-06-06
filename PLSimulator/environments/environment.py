@@ -5,9 +5,10 @@ import numpy as np
 from abc import abstractmethod
 from gym.spaces import Discrete
 from gym.spaces import Box
+from pygame import Vector2
 
 from PLSimulator.constants import ASSET_DATA_DIRECTORY
-from PLSimulator.agents.agent import BaseAgent
+from PLSimulator.entities.entity import BaseEntity
 
 
 class BaseEnvironment(gym.Env):
@@ -20,19 +21,15 @@ class BaseEnvironment(gym.Env):
 
     def __init__(
         self,
-        agent: BaseAgent,
         entities: list = [],
-        width: int = 1600,
-        height: int = 900,
+        width: int = 1280,
+        height: int = 720,
         bg_colour: tuple = (0, 0, 0)) -> None:
         '''
             Initialise the environment
 
             Parameters:
-                agent: The agent operating in the environment
                 entities: The entities interacting in the environment
-                gravity: Force applied to agent in a downward direction
-                max_velocity: Max velocity achievable in environment
                 width: Width of the window (default is 1600)
                 height: Height of the window (default is 900)
                 bg_colour: Colour of the background
@@ -40,10 +37,20 @@ class BaseEnvironment(gym.Env):
             Returns:
                 None
         '''
+        # Set up pencil
+        parts = [
+            BaseEntity('engine firing.png', Vector2(16, 80), Vector2(0, 84), Vector2(0, 0), 0, 0, [], False),
+            BaseEntity('rcs firing.png', Vector2(16, 16), Vector2(14, 53), Vector2(0, 0), 180, 0, [], False),
+            BaseEntity('rcs firing.png', Vector2(16, 16), Vector2(14, -53), Vector2(0, 0), 0, 0, [], False),
+        ]
+        self._fuel = 20
+        self._dry_mass = 10
+        mass = self._fuel + self._dry_mass
+        self._pencil = BaseEntity('pencil.png', Vector2(16, 128), Vector2(0, 0), Vector2(0, 0), 0, mass, parts, True)
+
         # Set up entities
-        self._agent = agent
         self._entities = entities
-        self._entities.append(agent)
+        self._entities.append(self._pencil)
         self._rotation_scale = 0.1
         self._force_scale = 0.05
 
@@ -60,16 +67,16 @@ class BaseEnvironment(gym.Env):
         self._window_height = height
         self._window_bg_colour = bg_colour
 
+        image_path = os.path.join(ASSET_DATA_DIRECTORY, 'pencil.png')
+        self._icon = pygame.image.load(image_path).subsurface(0, 0, 16, 16)
+        pygame.display.set_icon(self._icon)
+        pygame.display.set_caption('Pencil Landing Simulator')
+
         # Set up pygame
         pygame.init()
         self.running = False
         self.window = pygame.display.set_mode((self._window_width, self._window_height))
         self.clock = pygame.time.Clock()
-
-        image_path = os.path.join(ASSET_DATA_DIRECTORY, 'pencil.png')
-        self._icon = pygame.image.load(image_path).subsurface(0, 0, 16, 16)
-        pygame.display.set_icon(self._icon)
-        pygame.display.set_caption('Pencil Landing Simulator')
 
     @abstractmethod
     def reset(self) -> list:

@@ -72,7 +72,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
         # Convert key presses to actions
         for i in range(len(keys)):
             action[i] = 1 if keys[i] else 0
-            environment._agent.entities[i].isRenderable = keys[i]
+            environment._pencil.entities[i].isRenderable = keys[i]
 
         # Update the environment with the action
         state, reward, done, info = environment.step(action)
@@ -172,7 +172,7 @@ def main(args: dict) -> None:
             None
     '''
     agent = AGENT_OBJCECTS_DICT[args.agent]()
-    environment = ENVIRONMENT_OBJECTS_DICT[args.env](agent, width=1280, height=720)
+    environment = ENVIRONMENT_OBJECTS_DICT[args.env]()
     register(id=args.env+"-v0", entry_point=ENVIRONMENT_OBJECTS_DICT[args.env])
 
     if args.agent == 'manual':

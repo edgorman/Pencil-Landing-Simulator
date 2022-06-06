@@ -1,7 +1,6 @@
 import math
 from pygame import Vector2
 
-from PLSimulator.agents.agent import BaseAgent
 from PLSimulator.environments.environment import BaseEnvironment
 
 
@@ -14,12 +13,11 @@ class SpaceEnvironment(BaseEnvironment):
 
     def __init__(
         self,
-        agent: BaseAgent,
         entities: list = [],
-        width: int = 1600,
-        height: int = 900,
+        width: int = 1280,
+        height: int = 720,
         bg_colour: tuple = (0, 0, 0)):
-        super().__init__(agent, entities, width, height, bg_colour)
+        super().__init__(entities, width, height, bg_colour)
     
     def reset(self):
         self.running = True
@@ -35,16 +33,17 @@ class SpaceEnvironment(BaseEnvironment):
         right = action[2] * 15 * self._rotation_scale
 
         # Check if agent has enough fuel to fire engine
-        if self._agent.fuel <= 0:
+        if self._fuel <= 0:
             thrust = 0
         
-        # Move agent under it's own thrust
-        heading = self._agent.angle + left + right
-        thrust = thrust * Vector2(math.sin(math.radians(heading)), math.cos(math.radians(heading)))
-        self._agent.update_position(thrust, heading)
-
         # Remove fuel from agent if fired engine
-        if thrust != 0:
-            self._agent.fuel -= 1
+        if abs(thrust) > 0:
+            self._fuel -= 0.1
+            self._pencil.mass = self._dry_mass + self._fuel
+        
+        # Move agent under it's own thrust
+        heading = self._pencil.angle + left + right
+        thrust = thrust * Vector2(math.sin(math.radians(heading)), math.cos(math.radians(heading)))
+        self._pencil.update_position(thrust, heading)
 
         return self.state(), 0, False, {}
