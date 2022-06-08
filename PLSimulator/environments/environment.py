@@ -1,8 +1,8 @@
 import os
 import gym
+import math
 import pygame
 import numpy as np
-from abc import abstractmethod
 from gym.spaces import Box
 from pygame import Vector2
 
@@ -81,7 +81,6 @@ class BaseEnvironment(gym.Env):
         self.window = pygame.display.set_mode((self._window_width, self._window_height))
         self.clock = pygame.time.Clock()
 
-    @abstractmethod
     def reset(self) -> list:
         '''
             Reset the environment to starting conditions
@@ -92,8 +91,9 @@ class BaseEnvironment(gym.Env):
             Returns:
                 state: Starting state of environment
         '''
+        self.running = True
+        return self.state()
 
-    @abstractmethod
     def state(self) -> list:
         '''
             Get the current state of the environment
@@ -104,8 +104,8 @@ class BaseEnvironment(gym.Env):
             Returns:
                 state: Information about the environment in relation to the agent
         '''
+        return [0, 0, 0, 0]
 
-    @abstractmethod
     def step(self, action: list) -> tuple:
         '''
             Step the environment given an action by agent
@@ -119,6 +119,29 @@ class BaseEnvironment(gym.Env):
                 done: Whether the environment is done
                 info: Any extra information about environment
         '''
+        # Convert agent actions into forces
+        thrust = -action[0] * 15 * self._force_scale
+        left = -action[1] * 15 * self._rotation_scale
+        right = action[2] * 15 * self._rotation_scale
+
+        # Check if agent has enough fuel to fire engine
+        if self._fuel <= 0:
+            thrust = 0
+        
+        # Remove fuel from agent if fired engine
+        if abs(thrust) > 0:
+            self._fuel -= 0.1
+            self._pencil.mass = self._dry_mass + self._fuel
+        
+        # Calculate new heading of pencil
+        heading = self._pencil.angle + left + right
+        heading_rads = math.radians(heading)
+
+        # Move agent under it's own thrust
+        thrust = thrust * Vector2(math.sin(heading_rads), math.cos(heading_rads))
+        self._pencil.update_position(thrust, heading)
+
+        return self.state(), 0, False, {}
 
     def render(self) -> None:
         '''

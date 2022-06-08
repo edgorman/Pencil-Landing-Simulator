@@ -1,9 +1,8 @@
 from pygame import Vector2
+from PLSimulator.environments.environment import BaseEnvironment
 
-from PLSimulator.environments.space import SpaceEnvironment
 
-
-class PlanetEnvironment(SpaceEnvironment):
+class PlanetEnvironment(BaseEnvironment):
     '''
         PlanetEnvironment
 
