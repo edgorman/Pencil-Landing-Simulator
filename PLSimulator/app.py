@@ -62,7 +62,6 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
         # Convert key presses to actions
         for i in range(len(keys)):
             action[i] = 1 if keys[i] else 0
-            environment._pencil.entities[i].isRenderable = keys[i]
 
         # Update the environment with the action
         state, reward, done, info = environment.step(action)

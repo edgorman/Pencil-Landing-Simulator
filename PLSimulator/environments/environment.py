@@ -22,7 +22,7 @@ class BaseEnvironment(gym.Env):
         self,
         gravity: float = 9.8,
         density: float = 1.0,
-        max_fuel: float = 100,
+        max_fuel: float = 20,
         bg_colour: tuple = (137, 207, 240),
         surface: str = "flat",
         width: int = 1280,
@@ -44,12 +44,12 @@ class BaseEnvironment(gym.Env):
         '''
         # Set up pencil
         parts = [
-            BaseEntity('engine firing.png', Vector2(16, 80), Vector2(0, 84), Vector2(0, 0), 0, 0, [], False),
-            BaseEntity('rcs firing.png', Vector2(16, 16), Vector2(14, 53), Vector2(0, 0), 180, 0, [], False),
-            BaseEntity('rcs firing.png', Vector2(16, 16), Vector2(14, -53), Vector2(0, 0), 0, 0, [], False),
+            BaseEntity('engine_firing.png', Vector2(16, 80), Vector2(0, 84), Vector2(0, 0), 0, 0, [], False),
+            BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, 53), Vector2(0, 0), 180, 0, [], False),
+            BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, -53), Vector2(0, 0), 0, 0, [], False),
         ]
         self._max_fuel = max_fuel
-        self._fuel, self._dry_mass = 0, 10
+        self._fuel, self._dry_mass = max_fuel, 10
         self._pencil = BaseEntity('pencil.png', Vector2(16, 128), Vector2(0, 0), Vector2(0, 0), 0, self._fuel + self._dry_mass, parts, True)
 
         # Set up entities
@@ -142,9 +142,14 @@ class BaseEnvironment(gym.Env):
         left = -action[1] * 15 * self._rotation_scale
         right = action[2] * 15 * self._rotation_scale
 
+        # Update pencil sub-entities
+        for i in range(len(action)):
+            self._pencil.entities[i].isRenderable = action[i] != 0
+
         # Check if agent has enough fuel to fire engine
         if self._fuel <= 0:
             thrust = 0
+            self._pencil.entities[0].isRenderable = False
         
         # Remove fuel from agent if fired engine
         if abs(thrust) > 0:
