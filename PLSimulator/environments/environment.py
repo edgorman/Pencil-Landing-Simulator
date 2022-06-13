@@ -52,9 +52,12 @@ class BaseEnvironment(gym.Env):
         self._fuel, self._dry_mass = max_fuel, 10
         self._pencil = BaseEntity('pencil.png', Vector2(16, 128), Vector2(0, 0), Vector2(0, 0), 0, self._fuel + self._dry_mass, parts, True)
 
+        # Set up landing zone
+        self._lander = BaseEntity('landing_zone.png', Vector2(128, 16), Vector2(0, height - 24), Vector2(0, 0), 0, 100, [], True)
+
         # Set up entities
         self._entities = []
-        self._entities.append(self._pencil)
+        self._entities.extend([self._pencil, self._lander])
 
         # Set up forces
         self._rotation_scale = 0.1
@@ -127,44 +130,46 @@ class BaseEnvironment(gym.Env):
                 done: Whether the environment is done
                 info: Any extra information about environment
         '''
-        # Move pencil under gravity
-        gravity = self._force_scale * Vector2(0, self._gravity)
-
-        # Move pencil under drag: Fd = 0.5 * Cd * A * p * V^2
-        drag = 0.5 * 0.82 * 1 * self._density * Vector2(self._pencil.velocity[0]**2, self._pencil.velocity[1]**2)
-        drag = self._force_scale * drag.rotate(180)
-
-        # Move pencil under gravity and drag
-        self._pencil.update_position(gravity + drag)
+        reward = 0
+        done = False
+        info = {}
 
         # Convert agent actions into forces
+        # and sacle by the force scale
         thrust = -action[0] * 15 * self._force_scale
         left = -action[1] * 15 * self._rotation_scale
         right = action[2] * 15 * self._rotation_scale
 
-        # Update pencil sub-entities
-        for i in range(len(action)):
-            self._pencil.entities[i].isRenderable = action[i] != 0
-
         # Check if agent has enough fuel to fire engine
         if self._fuel <= 0:
             thrust = 0
-            self._pencil.entities[0].isRenderable = False
-        
-        # Remove fuel from agent if fired engine
-        if abs(thrust) > 0:
+        elif abs(thrust) > 0:
             self._fuel -= 0.1
             self._pencil.mass = self._dry_mass + self._fuel
         
-        # Calculate new heading of pencil
-        heading = self._pencil.angle + left + right
-        heading_rads = math.radians(heading)
+        # Move pencil under gravity and drag, where
+        # drag is calculated using: Fd = 0.5 * Cd * A * p * V^2
+        gravity = self._force_scale * Vector2(0, self._gravity)
+        drag = 0.5 * 0.82 * 1 * self._density * Vector2(self._pencil.velocity[0]**2, self._pencil.velocity[1]**2)
+        drag = self._force_scale * drag.rotate(180)
 
-        # Move agent under it's own thrust
-        thrust = thrust * Vector2(math.sin(heading_rads), math.cos(heading_rads))
+        # Move pencil under force of it's own thrust
+        heading = self._pencil.angle + left + right
+        thrust = thrust * Vector2(math.sin(math.radians(heading)), math.cos(math.radians(heading)))
+        
+        # Update pencils position under external and internal forces
+        self._pencil.update_position(gravity + drag)
         self._pencil.update_position(thrust, heading)
 
-        return self.state(), 0, False, {}
+        # Update pencil sub-entities rendering
+        for i, entity in enumerate(self._pencil.entities):
+            entity.isRenderable = action[i] != 0
+        
+        # Determine if pencil has entered a final state
+        if self._pencil.collides_with(self._lander):
+            done = True
+
+        return self.state(), reward, done, info
 
     def render(self) -> None:
         '''

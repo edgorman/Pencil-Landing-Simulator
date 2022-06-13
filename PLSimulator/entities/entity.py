@@ -1,3 +1,4 @@
+from lib2to3.pytree import Base
 import os
 import pygame
 from pygame import Vector2
@@ -93,7 +94,6 @@ class BaseEntity:
         rotated_image = pygame.transform.rotozoom(self.image, self.angle + angle, 1)
         rotated_offset = offset.rotate(-(self.angle + angle))
         rotated_rect = rotated_image.get_rect(center = pivot + rotated_offset)
-
         images.append((rotated_image, rotated_rect))
 
         # Render sub-entities that are renderable
@@ -102,3 +102,16 @@ class BaseEntity:
                 images.extend(entity.render(pivot, entity.position, self.angle + angle))
 
         return images
+
+    def collides_with(self, other: object):
+        '''
+            Check whether other BaseEntity object collides with this object
+
+            Parameters:
+                other: Other base entity to consider
+            
+            Returns:
+                collision: Whether a collision has occurred
+        '''
+
+        return False
