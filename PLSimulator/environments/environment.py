@@ -20,18 +20,24 @@ class BaseEnvironment(gym.Env):
 
     def __init__(
         self,
-        entities: list = [],
+        gravity: float = 9.8,
+        density: float = 1.0,
+        max_fuel: float = 100,
+        bg_colour: tuple = (137, 207, 240),
+        surface: str = "flat",
         width: int = 1280,
-        height: int = 720,
-        bg_colour: tuple = (0, 0, 0)) -> None:
+        height: int = 720) -> None:
         '''
             Initialise the environment
 
             Parameters:
-                entities: The entities interacting in the environment
-                width: Width of the window (default is 1600)
-                height: Height of the window (default is 900)
-                bg_colour: Colour of the background
+                gravity: Gravity of body (0 if none present)
+                density: Density of atmosphere (0 if none present)
+                max_fuel: Max amount of fuel available to agent
+                bg_colour: Colour of environment background
+                surface: Type of surface as a string
+                width: Width of the window (default is 1280)
+                height: Height of the window (default is 720)
 
             Returns:
                 None
@@ -42,16 +48,19 @@ class BaseEnvironment(gym.Env):
             BaseEntity('rcs firing.png', Vector2(16, 16), Vector2(14, 53), Vector2(0, 0), 180, 0, [], False),
             BaseEntity('rcs firing.png', Vector2(16, 16), Vector2(14, -53), Vector2(0, 0), 0, 0, [], False),
         ]
-        self._fuel = 20
-        self._dry_mass = 10
-        mass = self._fuel + self._dry_mass
-        self._pencil = BaseEntity('pencil.png', Vector2(16, 128), Vector2(0, 0), Vector2(0, 0), 0, mass, parts, True)
+        self._max_fuel = max_fuel
+        self._fuel, self._dry_mass = 0, 10
+        self._pencil = BaseEntity('pencil.png', Vector2(16, 128), Vector2(0, 0), Vector2(0, 0), 0, self._fuel + self._dry_mass, parts, True)
 
         # Set up entities
-        self._entities = entities
+        self._entities = []
         self._entities.append(self._pencil)
+
+        # Set up forces
         self._rotation_scale = 0.1
         self._force_scale = 0.05
+        self._gravity = gravity
+        self._density = density
 
         # Set up environment
         self.action_space = Box(
@@ -69,7 +78,6 @@ class BaseEnvironment(gym.Env):
         self._window_width = width
         self._window_height = height
         self._window_bg_colour = bg_colour
-
         image_path = os.path.join(ASSET_DATA_DIRECTORY, 'pencil.png')
         self._icon = pygame.image.load(image_path).subsurface(0, 0, 16, 16)
         pygame.display.set_icon(self._icon)
@@ -77,9 +85,9 @@ class BaseEnvironment(gym.Env):
 
         # Set up pygame
         pygame.init()
-        self.running = False
         self.window = pygame.display.set_mode((self._window_width, self._window_height))
         self.clock = pygame.time.Clock()
+        self.running = False
 
     def reset(self) -> list:
         '''
@@ -119,6 +127,16 @@ class BaseEnvironment(gym.Env):
                 done: Whether the environment is done
                 info: Any extra information about environment
         '''
+        # Move pencil under gravity
+        gravity = self._force_scale * Vector2(0, self._gravity)
+
+        # Move pencil under drag: Fd = 0.5 * Cd * A * p * V^2
+        drag = 0.5 * 0.82 * 1 * self._density * Vector2(self._pencil.velocity[0]**2, self._pencil.velocity[1]**2)
+        drag = self._force_scale * drag.rotate(180)
+
+        # Move pencil under gravity and drag
+        self._pencil.update_position(gravity + drag)
+
         # Convert agent actions into forces
         thrust = -action[0] * 15 * self._force_scale
         left = -action[1] * 15 * self._rotation_scale
@@ -153,12 +171,17 @@ class BaseEnvironment(gym.Env):
             Returns:
                 None
         '''
+        # Clear screen
         self.window.fill(self._window_bg_colour)
 
+        # For each entity, render if renderable
         for entity in self._entities:
             if entity.isRenderable:
+                # Calculate pivot and render entity around that
                 pivot = entity.position + entity._asset_size
                 images = entity.render(pivot)
+
+                # Render all images that make up entity
                 for image, position in images:
                     self.window.blit(image, position)
 

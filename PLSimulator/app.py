@@ -7,21 +7,11 @@ from PLSimulator.log import Log
 from PLSimulator.agents.agent import BaseAgent
 from PLSimulator.agents.ppo import PPOAgent
 from PLSimulator.environments.environment import BaseEnvironment
-from PLSimulator.environments.planet import EarthEnvironment
-from PLSimulator.environments.planet import MarsEnvironment
-from PLSimulator.environments.planet import MoonEnvironment
 
 
 AGENT_OBJCECTS_DICT = {
     'manual': BaseAgent,
     'ppo': PPOAgent,
-    'dqn': BaseAgent,  # TODO
-}
-
-ENVIRONMENT_OBJECTS_DICT = {
-    'earth': EarthEnvironment,
-    'mars': MarsEnvironment,
-    'moon': MoonEnvironment,
 }
 
 
@@ -124,16 +114,18 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
     Log.success(f"Agent has finished the simulation.")
 
 
-def train(agent: BaseAgent) -> BaseAgent:
+def train(agent: BaseAgent, num_iterations: int = 10) -> BaseAgent:
     '''
         Train the agent in the environment given
 
         Parameters:
             agent: The agent to train in the environment
+            num_iterations: Number of iterations to train agent
 
         Returns:
             None
     '''
+    # Set up Ray
     Log.info("Loading Ray...")
     info = ray.init(ignore_reinit_error=True)
     Log.success(f"Loaded dashboard at http://{info['webui_url']}")
@@ -145,12 +137,14 @@ def train(agent: BaseAgent) -> BaseAgent:
     Log.info("Clearing previous training...")
     agent.clear()
 
+    # Start agent training
     Log.info("Starting training...")
-    num_iter = 10
-    for n in range(num_iter):
+    for n in range(num_iterations):
         result = agent.train()
-        results.append(result)
 
+        # Store results for each iteration
+        results.append(result)
+        
         episode = {'n': n, 
                'episode_reward_min': result['episode_reward_min'], 
                'episode_reward_mean': result['episode_reward_mean'], 
@@ -159,6 +153,8 @@ def train(agent: BaseAgent) -> BaseAgent:
     
         episode_data.append(episode)
         episode_json.append(json.dumps(episode))
+
+        # Save this model to local folder
         agent.save()
     Log.success("Finished training agent.")
 
@@ -174,7 +170,7 @@ def main(args: dict) -> None:
             None
     '''
     agent = AGENT_OBJCECTS_DICT[args.agent]
-    environment = ENVIRONMENT_OBJECTS_DICT[args.env]
+    environment = BaseEnvironment
 
     if args.agent == 'manual':
         Log.info("Loading the environment in manual mode.")
