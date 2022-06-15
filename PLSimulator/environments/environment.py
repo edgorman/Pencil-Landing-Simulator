@@ -44,7 +44,7 @@ class BaseEnvironment(gym.Env):
         '''
         # Set up entities
         self._max_fuel = max_fuel
-        self._fuel, self._dry_mass = max_fuel, 10
+        self._fuel, self._dry_mass = max_fuel, 15
         self.entities = {
             'pencil': Pencil(),
             'landingPad': LandingPad(),
@@ -127,18 +127,18 @@ class BaseEnvironment(gym.Env):
         done = False
         info = {}
 
+        # Check if agent has enough fuel to fire engine
+        if self._fuel <= 0:
+            action[0] = 0
+        elif abs(action[0]) > 0:
+            self._fuel -= 0.1
+            pencil.mass = self._dry_mass + self._fuel
+
         # Convert agent actions into forces
         thrust = -action[0] * 12 * self._force_scale
         left = -action[1] * 12 * self._rotation_scale
         right = action[2] * 12 * self._rotation_scale
 
-        # Check if agent has enough fuel to fire engine
-        if self._fuel <= 0:
-            thrust = 0
-        elif abs(thrust) > 0:
-            self._fuel -= 0.1
-            pencil.mass = self._dry_mass + self._fuel
-        
         # Move pencil under gravity and drag, where
         # drag is calculated using: Fd = 0.5 * Cd * A * p * V^2
         # TODO: drag coeff should be relative to angle of pencil (e.g. larger when horizontal)
@@ -155,8 +155,8 @@ class BaseEnvironment(gym.Env):
         pencil.update_position(thrust, heading)
 
         # Update pencil sub-entities rendering
-        for i, entity in enumerate(pencil.entities):
-            entity.isRenderable = action[i] != 0
+        for i in range(len(action)):
+            pencil.entities[i].isRenderable = action[i] != 0
         
         # Determine if pencil has entered a final state
         collidable_entities = [e for name, e in self.entities.items() if e.isCollidable and name != 'pencil']

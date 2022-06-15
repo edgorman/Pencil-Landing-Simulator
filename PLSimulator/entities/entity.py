@@ -47,7 +47,7 @@ class BaseEntity:
         self.position = position
         self.velocity = velocity
         self.angle = angle
-        self.mass = mass
+        self.mass = mass + sum([e.mass for e in entities])
         self.entities = entities
         self.isRenderable = isRenderable
         self.isCollidable = isCollidable
@@ -164,6 +164,8 @@ class Pencil(BaseEntity):
                 BaseEntity('engine_firing.png', Vector2(16, 80), Vector2(0, 84), Vector2(0, 0), 0, 0, [], False, False),
                 BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, 53), Vector2(0, 0), 180, 0, [], False, False),
                 BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, -53), Vector2(0, 0), 0, 0, [], False, False),
+                BaseEntity('leg_left.png', Vector2(8, 32), Vector2(-9, 46), Vector2(0, 0), 0, 0, [], True, True),
+                BaseEntity('leg_right.png', Vector2(8, 32), Vector2(10, 46), Vector2(0, 0), 0, 0, [], True, True),
             ],
             True,
             True
