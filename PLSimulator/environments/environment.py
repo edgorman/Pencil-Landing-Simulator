@@ -9,6 +9,7 @@ from pygame import Vector2
 from PLSimulator.constants import ASSET_DATA_DIRECTORY
 from PLSimulator.entities.entity import Pencil
 from PLSimulator.entities.entity import LandingPad
+from PLSimulator.entities.entity import Ground
 
 
 class BaseEnvironment(gym.Env):
@@ -35,8 +36,8 @@ class BaseEnvironment(gym.Env):
                 density: Density of atmosphere (0 if none present)
                 max_fuel: Max amount of fuel available to agent
                 bg_colour: Colour of environment background
-                width: Width of the window (default is 1280)
-                height: Height of the window (default is 720)
+                width: Width of the window (default is 640)
+                height: Height of the window (default is 900)
 
             Returns:
                 None
@@ -44,9 +45,11 @@ class BaseEnvironment(gym.Env):
         # Set up entities
         self._max_fuel = max_fuel
         self._fuel, self._dry_mass = max_fuel, 10
-        self._pencil = Pencil()
-        self._lander = LandingPad()
-        self._entities = [self._pencil, self._lander]
+        self.entities = {
+            'pencil': Pencil(),
+            'landingPad': LandingPad(),
+            'ground': Ground()
+        }
 
         # Set up forces
         self._rotation_scale = 0.1
@@ -119,6 +122,7 @@ class BaseEnvironment(gym.Env):
                 done: Whether the environment is done
                 info: Any extra information about environment
         '''
+        pencil = self.entities["pencil"]
         reward = 0
         done = False
         info = {}
@@ -133,28 +137,30 @@ class BaseEnvironment(gym.Env):
             thrust = 0
         elif abs(thrust) > 0:
             self._fuel -= 0.1
-            self._pencil.mass = self._dry_mass + self._fuel
+            pencil.mass = self._dry_mass + self._fuel
         
         # Move pencil under gravity and drag, where
         # drag is calculated using: Fd = 0.5 * Cd * A * p * V^2
+        # TODO: drag coeff should be relative to angle of pencil (e.g. larger when horizontal)
         gravity = self._force_scale * Vector2(0, self._gravity)
-        drag = 0.5 * 0.82 * 1 * self._density * Vector2(self._pencil.velocity[0]**2, self._pencil.velocity[1]**2)
+        drag = 0.5 * 0.82 * 1 * self._density * Vector2(pencil.velocity[0]**2, pencil.velocity[1]**2)
         drag = self._force_scale * drag.rotate(180)
 
         # Move pencil under force of it's own thrust
-        heading = self._pencil.angle + left + right
+        heading = pencil.angle + left + right
         thrust = thrust * Vector2(math.sin(math.radians(heading)), math.cos(math.radians(heading)))
         
         # Update pencils position under external and internal forces
-        self._pencil.update_position(gravity + drag)
-        self._pencil.update_position(thrust, heading)
+        pencil.update_position(gravity + drag)
+        pencil.update_position(thrust, heading)
 
         # Update pencil sub-entities rendering
-        for i, entity in enumerate(self._pencil.entities):
+        for i, entity in enumerate(pencil.entities):
             entity.isRenderable = action[i] != 0
         
         # Determine if pencil has entered a final state
-        if self._pencil.collides_with(self._lander):
+        collidable_entities = [e for name, e in self.entities.items() if e.isCollidable and name != 'pencil']
+        if any([pencil.collides_with(e) for e in collidable_entities]):
             done = True
 
         return self.state(), reward, done, info
@@ -173,7 +179,7 @@ class BaseEnvironment(gym.Env):
         self.window.fill(self._window_bg_colour)
 
         # For each entity, render if renderable
-        for entity in self._entities:
+        for _, entity in self.entities.items():
             if entity.isRenderable:
                 # Calculate pivot and render entity around that
                 pivot = entity.position + entity._asset_size

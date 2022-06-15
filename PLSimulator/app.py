@@ -100,10 +100,6 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
         # Get action of the agent
         action = agent.step(state)
 
-        # Toggle pencil sub entities on/off
-        for i in range(len(action)):
-            environment._pencil.entities[i].isRenderable = abs(action[i]) > 0
-
         # Update the environment with the action
         state, reward, done, info = environment.step(action)
 

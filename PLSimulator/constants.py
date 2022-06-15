@@ -11,21 +11,18 @@ ENV_CONFIG = {
         'gravity': 9.8,
         'density': 1.0,
         'max_fuel': 100,
-        'bg_color': (137, 207, 240),
-        'surfaces': ['flat', 'rock', 'sea']
+        'bg_color': (137, 207, 240)
     },
     'mars': {
         'gravity': 4.9,
         'density': 0.1,
         'max_fuel': 50,
-        'bg_color': (110, 38, 14),
-        'surfaces': ['flat', 'rock']
+        'bg_color': (110, 38, 14)
     },
     'moon': {
         'gravity': 1.6,
         'density': 0.0,
         'max_fuel': 25,
-        'bg_color': (169, 169, 169),
-        'surfaces': ['flat', 'rocky']
+        'bg_color': (169, 169, 169)
     }
 }

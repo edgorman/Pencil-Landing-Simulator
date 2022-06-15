@@ -19,13 +19,11 @@ if __name__ == '__main__':
     # Configure agent and environment choices
     agent_choices = list(app.AGENT_OBJCECTS_DICT.keys())
     env_choices = list(constants.ENV_CONFIG.keys())
-    surface_choices = list(constants.ENV_CONFIG[env_choices[0]]['surfaces'])
 
     # Parse input arguments
     parser = argparse.ArgumentParser(prog="PLSimulator", description="Train an agent to propulsively land.")
     parser.add_argument('-agent', choices=agent_choices, help="choose the agent", default='manual')
     parser.add_argument('-env', choices=env_choices, help="choose the environment", default='earth')
-    parser.add_argument('-surface', choices=surface_choices, help="choose the landing surface", default='flat')
     parser.add_argument('-verbose', action='store_true', dest='verbose', help="show extra output", default=False)
     parser.add_argument('-version', action='version', version='%(prog)s@dev')
 
