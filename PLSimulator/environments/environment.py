@@ -7,7 +7,8 @@ from gym.spaces import Box
 from pygame import Vector2
 
 from PLSimulator.constants import ASSET_DATA_DIRECTORY
-from PLSimulator.entities.entity import BaseEntity
+from PLSimulator.entities.entity import Pencil
+from PLSimulator.entities.entity import LandingPad
 
 
 class BaseEnvironment(gym.Env):
@@ -40,22 +41,12 @@ class BaseEnvironment(gym.Env):
             Returns:
                 None
         '''
-        # Set up pencil
-        parts = [
-            BaseEntity('engine_firing.png', Vector2(16, 80), Vector2(0, 84), Vector2(0, 0), 0, 0, [], False, False),
-            BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, 53), Vector2(0, 0), 180, 0, [], False, False),
-            BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, -53), Vector2(0, 0), 0, 0, [], False, False),
-        ]
+        # Set up entities
         self._max_fuel = max_fuel
         self._fuel, self._dry_mass = max_fuel, 10
-        self._pencil = BaseEntity('pencil.png', Vector2(16, 128), Vector2(0, 0), Vector2(0, 0), 0, self._fuel + self._dry_mass, parts, True)
-
-        # Set up landing zone
-        self._lander = BaseEntity('landing_zone.png', Vector2(256, 16), Vector2(0, height - 24), Vector2(0, 0), 0, 100, [], True)
-
-        # Set up entities
-        self._entities = []
-        self._entities.extend([self._pencil, self._lander])
+        self._pencil = Pencil()
+        self._lander = LandingPad()
+        self._entities = [self._pencil, self._lander]
 
         # Set up forces
         self._rotation_scale = 0.1
@@ -133,10 +124,9 @@ class BaseEnvironment(gym.Env):
         info = {}
 
         # Convert agent actions into forces
-        # and sacle by the force scale
-        thrust = -action[0] * 15 * self._force_scale
-        left = -action[1] * 15 * self._rotation_scale
-        right = action[2] * 15 * self._rotation_scale
+        thrust = -action[0] * 12 * self._force_scale
+        left = -action[1] * 12 * self._rotation_scale
+        right = action[2] * 12 * self._rotation_scale
 
         # Check if agent has enough fuel to fire engine
         if self._fuel <= 0:

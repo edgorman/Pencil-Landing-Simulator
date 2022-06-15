@@ -1,3 +1,4 @@
+from lib2to3.pytree import Base
 import os
 import pygame
 from pygame import Vector2
@@ -143,3 +144,49 @@ class BaseEntity:
 
         # No collision has occurred
         return False
+
+
+class Pencil(BaseEntity):
+    '''
+        Pencil
+
+        This is the pencil entity class, including flame and rcs as sub-entities
+    '''
+
+    def __init__(self):
+        super().__init__(
+            'pencil.png', 
+            Vector2(16, 128),
+            Vector2(0, 0),
+            Vector2(0, 0),
+            0,
+            30,  # TODO: to change on reset method
+            [
+                BaseEntity('engine_firing.png', Vector2(16, 80), Vector2(0, 84), Vector2(0, 0), 0, 0, [], False, False),
+                BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, 53), Vector2(0, 0), 180, 0, [], False, False),
+                BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, -53), Vector2(0, 0), 0, 0, [], False, False),
+            ],
+            True,
+            True
+        )
+
+
+class LandingPad(BaseEntity):
+    '''
+        LandingPad
+    
+        This is the landing pad entity class
+    '''
+
+    def __init__(self):
+        super().__init__(
+            'landing_zone.png',
+            Vector2(256, 16),
+            Vector2(32, 876),  # TODO: to change on reset method
+            Vector2(0, 0),
+            0,
+            100,
+            [],
+            True
+        )
+    
