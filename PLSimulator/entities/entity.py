@@ -134,8 +134,6 @@ class BaseEntity:
         this_polygons = [Polygon([r.topleft, r.topright, r.bottomright, r.bottomleft]) for r in this_rects]
         other_polygons = [Polygon([r.topleft, r.topright, r.bottomright, r.bottomleft]) for r in other_rects]
 
-        print(len(this_polygons), len(other_polygons))
-
         # For each polygon object, see if it intersects in any other polygon
         for t in this_polygons:
             for o in other_polygons:

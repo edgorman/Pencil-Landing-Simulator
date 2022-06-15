@@ -59,7 +59,7 @@ class BaseEnvironment(gym.Env):
 
         # Set up forces
         self._rotation_scale = 0.1
-        self._force_scale = 0.05
+        self._force_scale = 0.35
         self._gravity = gravity
         self._density = density
 
