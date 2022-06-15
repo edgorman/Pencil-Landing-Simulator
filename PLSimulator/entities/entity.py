@@ -1,7 +1,7 @@
-from lib2to3.pytree import Base
 import os
 import pygame
 from pygame import Vector2
+from shapely.geometry import Polygon
 
 from PLSimulator.constants import ASSET_DATA_DIRECTORY
 
@@ -21,8 +21,9 @@ class BaseEntity:
         velocity: Vector2 = Vector2(0, 0),
         angle: float = 0,
         mass: float = 1,
-        entities: list = [],
-        isRenderable: bool = True) -> None:
+        entities: "list[BaseEntity]" = [],
+        isRenderable: bool = True,
+        isCollidable: bool = True) -> None:
         '''
             Initialise the entity
 
@@ -35,6 +36,7 @@ class BaseEntity:
                 mass: Mass of entity (may change)
                 entities: List of sub entities to render
                 isRenderable: Whether the entity is renderable
+                isCollidable: Whether the entity is collidable
 
             Returns:
                 None
@@ -47,6 +49,7 @@ class BaseEntity:
         self.mass = mass
         self.entities = entities
         self.isRenderable = isRenderable
+        self.isCollidable = isCollidable
 
         image_path = os.path.join(ASSET_DATA_DIRECTORY, asset_name)
         self.image = pygame.image.load(image_path)
@@ -76,7 +79,7 @@ class BaseEntity:
         if heading is not None:
             self.angle = heading
 
-    def render(self, pivot: Vector2 = Vector2(0, 0), offset: Vector2 = Vector2(0, 0), angle: float = 0) -> list:
+    def render(self, pivot: Vector2 = Vector2(0, 0), offset: Vector2 = Vector2(0, 0), angle: float = 0, showNonCollidable: bool = True) -> list:
         '''
             Render the entity and any sub-entities to the window
 
@@ -88,24 +91,30 @@ class BaseEntity:
             Returns:
                 images: List of rotated images to render
         '''
-        images = []
+        # Return if entity is not renderable
+        if not self.isRenderable:
+            return []
 
-        # Render entity
+        # Return if should not show non collidable, and entity is not collidable
+        if not showNonCollidable and not self.isCollidable:
+            return []
+
+        # Render this entity
         rotated_image = pygame.transform.rotozoom(self.image, self.angle + angle, 1)
         rotated_offset = offset.rotate(-(self.angle + angle))
         rotated_rect = rotated_image.get_rect(center = pivot + rotated_offset)
-        images.append((rotated_image, rotated_rect))
 
-        # Render sub-entities that are renderable
+        # Render all sub-entities
+        images = [(rotated_image, rotated_rect)]
         for entity in self.entities:
             if entity.isRenderable:
-                images.extend(entity.render(pivot, entity.position, self.angle + angle))
+                images.extend(entity.render(pivot, entity.position, self.angle + angle, showNonCollidable))
 
         return images
 
-    def collides_with(self, other: object):
+    def collides_with(self, other: "BaseEntity") -> bool:
         '''
-            Check whether other BaseEntity object collides with this object
+            Check whether other BaseEntity collides with this BaseEntity
 
             Parameters:
                 other: Other base entity to consider
@@ -113,5 +122,26 @@ class BaseEntity:
             Returns:
                 collision: Whether a collision has occurred
         '''
+        # Return if entity is not collidable or renderable
+        if not self.isCollidable or not self.isRenderable:
+            return False
 
+        # Generate the rectangles for each entity
+        this_rects = [r for _, r in self.render(self.position + self._asset_size, showNonCollidable=False)]
+        other_rects = [r for _, r in other.render(other.position + other._asset_size, showNonCollidable=False)]
+
+        # Convert these into polygon objects
+        this_polygons = [Polygon([r.topleft, r.topright, r.bottomright, r.bottomleft]) for r in this_rects]
+        other_polygons = [Polygon([r.topleft, r.topright, r.bottomright, r.bottomleft]) for r in other_rects]
+
+        print(len(this_polygons), len(other_polygons))
+
+        # For each polygon object, see if it intersects in any other polygon
+        for t in this_polygons:
+            for o in other_polygons:
+                if t.intersects(o):
+                    # A collision has occurred, exit early
+                    return True
+
+        # No collision has occurred
         return False

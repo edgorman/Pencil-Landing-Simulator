@@ -27,6 +27,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
             None
     '''
     # Set up environment
+    done, quit = False, False
     environment.reset()
     Log.info("User has started the simulation.")
 
@@ -35,13 +36,13 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
     keys = [False, False, False]
 
     # Iterate until environment has finished
-    while environment.running:
+    while not done and not quit:
         # Process pygame events
         events = pygame.event.get()
         for event in events:
             # Check for manual exit
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                environment.running = False
+                quit = True
 
             # Check for key presses
             if event.type == pygame.KEYDOWN:
@@ -87,11 +88,12 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
             None
     '''
     # Set up environment
+    done = False
     environment.reset()
     Log.info("Agent has started the simulation.")
 
     # Iterate until environment has finished
-    while environment.running:
+    while not done:
         # Step through environment once
         state = environment.state()
 

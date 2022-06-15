@@ -24,9 +24,8 @@ class BaseEnvironment(gym.Env):
         density: float = 1.0,
         max_fuel: float = 20,
         bg_colour: tuple = (137, 207, 240),
-        surface: str = "flat",
-        width: int = 1280,
-        height: int = 720) -> None:
+        width: int = 640,
+        height: int = 900) -> None:
         '''
             Initialise the environment
 
@@ -35,7 +34,6 @@ class BaseEnvironment(gym.Env):
                 density: Density of atmosphere (0 if none present)
                 max_fuel: Max amount of fuel available to agent
                 bg_colour: Colour of environment background
-                surface: Type of surface as a string
                 width: Width of the window (default is 1280)
                 height: Height of the window (default is 720)
 
@@ -44,16 +42,16 @@ class BaseEnvironment(gym.Env):
         '''
         # Set up pencil
         parts = [
-            BaseEntity('engine_firing.png', Vector2(16, 80), Vector2(0, 84), Vector2(0, 0), 0, 0, [], False),
-            BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, 53), Vector2(0, 0), 180, 0, [], False),
-            BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, -53), Vector2(0, 0), 0, 0, [], False),
+            BaseEntity('engine_firing.png', Vector2(16, 80), Vector2(0, 84), Vector2(0, 0), 0, 0, [], False, False),
+            BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, 53), Vector2(0, 0), 180, 0, [], False, False),
+            BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, -53), Vector2(0, 0), 0, 0, [], False, False),
         ]
         self._max_fuel = max_fuel
         self._fuel, self._dry_mass = max_fuel, 10
         self._pencil = BaseEntity('pencil.png', Vector2(16, 128), Vector2(0, 0), Vector2(0, 0), 0, self._fuel + self._dry_mass, parts, True)
 
         # Set up landing zone
-        self._lander = BaseEntity('landing_zone.png', Vector2(128, 16), Vector2(0, height - 24), Vector2(0, 0), 0, 100, [], True)
+        self._lander = BaseEntity('landing_zone.png', Vector2(256, 16), Vector2(0, height - 24), Vector2(0, 0), 0, 100, [], True)
 
         # Set up entities
         self._entities = []
