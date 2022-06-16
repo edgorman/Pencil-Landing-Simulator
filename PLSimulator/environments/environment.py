@@ -8,8 +8,8 @@ from pygame import Vector2
 
 from PLSimulator.constants import ASSET_DATA_DIRECTORY
 from PLSimulator.entities.pencil import Pencil
-from PLSimulator.entities.entity import LandingPad
-from PLSimulator.entities.entity import Ground
+from PLSimulator.entities.static import Ground
+from PLSimulator.entities.static import LandingPad
 
 
 class BaseEnvironment(gym.Env):
@@ -122,6 +122,7 @@ class BaseEnvironment(gym.Env):
                 done: Whether the environment is done
                 info: Any extra information about environment
         '''
+        pencil = self.entities["pencil"]
         reward = 0
         info = {
             "landed": False,
@@ -130,30 +131,26 @@ class BaseEnvironment(gym.Env):
             "fuel_left": round(self._fuel, 1)
         }
 
-        # TODO: See if there's a better way of doing this
-        pencil = self.entities["pencil"]
-        ground = self.entities["ground"]
-        landing_pad = self.entities["landingPad"]
-        other_entities = [ground, landing_pad]
-
         # Check for pencil collisions with other entities
         collisions = []
-        for other in other_entities:
+        for other in [self.entities["ground"], self.entities["landingPad"]]:
             collisions.extend(pencil.collides_with(other))
         collisions = set(collisions)
 
         # Process collisions to detect end states
         for c in collisions:
-            if pencil in c and ground in c or \
-               pencil in c and landing_pad in c or \
-               pencil.entities[3] in c and ground in c or \
-               pencil.entities[4] in c and ground in c:
+            # Detect crash
+            if pencil in c and self.entities["ground"] in c or \
+               pencil in c and self.entities["landingPad"] in c or \
+               pencil.entities[3] in c and self.entities["ground"] in c or \
+               pencil.entities[4] in c and self.entities["ground"] in c:
                 info["crashed"] = True
                 break
             
-            if pencil.entities[3] in c and landing_pad in c:
+            # Detect landing
+            if pencil.entities[3] in c and self.entities["landingPad"] in c:
                 info["legs_on_pad"].append(pencil.entities[3])
-            if pencil.entities[4] in c and landing_pad in c:
+            if pencil.entities[4] in c and self.entities["landingPad"] in c:
                 info["legs_on_pad"].append(pencil.entities[4])
         if not info["crashed"] and len(info["legs_on_pad"]) == 2:
             info["landed"] = True
@@ -169,26 +166,21 @@ class BaseEnvironment(gym.Env):
         thrust = -action[0] * 12 * self._force_scale
         left = -action[1] * 12 * self._rotation_scale
         right = action[2] * 12 * self._rotation_scale
+        heading = pencil.angle + left + right
+        pencil.update_entities(action)
 
-        # Move pencil under gravity and drag, where
+        # Move pencil under the forces of its thrust, gravity and drag:
+        thrust = thrust * Vector2(math.sin(math.radians(heading)), math.cos(math.radians(heading)))
+        gravity = self._force_scale * Vector2(0, self._gravity)
         # drag is calculated using: Fd = 0.5 * Cd * A * p * V^2
         # TODO: drag coeff should be relative to angle of pencil (e.g. larger when horizontal)
-        gravity = self._force_scale * Vector2(0, self._gravity)
         drag = 0.5 * 0.82 * 1 * self._density * Vector2(pencil.velocity[0]**2, pencil.velocity[1]**2)
         drag = self._force_scale * drag.rotate(180)
-
-        # Move pencil under force of it's own thrust
-        heading = pencil.angle + left + right
-        thrust = thrust * Vector2(math.sin(math.radians(heading)), math.cos(math.radians(heading)))
         
         # Update pencils position under external and internal forces
         pencil.update_position(gravity + drag)
         pencil.update_position(thrust, heading)
 
-        # Update pencil sub-entities rendering
-        for i in range(len(action)):
-            pencil.entities[i].isRenderable = action[i] != 0
-        
         # Reward agent for moving closer to goal and conserving fuel
         reward += 1 if thrust.magnitude() < 1 else -1
 

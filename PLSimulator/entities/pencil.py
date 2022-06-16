@@ -17,17 +17,22 @@ class Pencil(BaseEntity):
             Vector2(0, 0),
             Vector2(0, 0),
             0,
-            20,  # TODO: change start mass on reset method
+            20,
             [
                 Engine(),
-                RCS(Vector2(-13, -52), flip_x=True),
-                RCS(Vector2(14, -52), flip_x=False),
-                Leg(Vector2(-9, 46), flip_x=False),
-                Leg(Vector2(10, 46), flip_x=True),
+                RCS(flip_x=False),
+                RCS(flip_x=True),
+                Leg(flip_x=False),
+                Leg(flip_x=True),
             ],
             True,
             True
         )
+    
+    def update_entities(self, action):
+        # Update pencil sub-entities rendering
+        for i in range(len(action)):
+            self.entities[i].isRenderable = action[i] != 0
 
 
 class Engine(BaseEntity):
@@ -45,8 +50,9 @@ class Engine(BaseEntity):
         )
 
 class RCS(BaseEntity):
-    def __init__(self, position: Vector2, flip_x: bool):
+    def __init__(self, flip_x: bool):
         asset_size = Vector2(-16, 16) if flip_x else Vector2(16, 16)
+        position = Vector2(-13, -52) if flip_x else Vector2(13, -52)
         super(RCS, self).__init__(
             'rcs_firing.png',
             asset_size,
@@ -60,8 +66,9 @@ class RCS(BaseEntity):
         )
 
 class Leg(BaseEntity):
-    def __init__(self, position: Vector2, flip_x: bool):
-        asset_size = Vector2(-8, 48) if flip_x else Vector2(8, 48)
+    def __init__(self, flip_x: bool):
+        asset_size = Vector2(-8, 48) if flip_x else Vector2(8, 48)  # TODO: Fix image, not correct asset_size
+        position = Vector2(10, 46) if flip_x else Vector2(-9, 46)
         super(Leg, self).__init__(
             "leg.png",
             asset_size,
