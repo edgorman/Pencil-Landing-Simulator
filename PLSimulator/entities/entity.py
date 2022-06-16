@@ -161,8 +161,8 @@ class BaseEntity:
             return []
 
         # Generate polygons for both objects
-        this_polygons = self.polygon(self.position + self._asset_size)
-        other_polygons = other.polygon(other.position + other._asset_size)
+        this_polygons = self.polygon(self.position)
+        other_polygons = other.polygon(other.position)
 
         # For each polygon object, see if it intersects in any other polygon
         collisions = []

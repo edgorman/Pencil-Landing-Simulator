@@ -104,8 +104,13 @@ class BaseEnvironment(gym.Env):
             Returns:
                 state: Information about the environment in relation to the agent
         '''
-        print(self.pencil.position)
-        return [0, 0, 0, 0]
+        return [
+            round(self.entities["landingPad"].position[0] - self.pencil.position[0], 1),
+            round(self.entities["landingPad"].position[1] - self.pencil.position[1], 1),
+            round(self.pencil.velocity[0], 1),
+            round(self.pencil.velocity[1], 1),
+            round(self.pencil.angle, 1)
+        ]
 
     def step(self, action: list) -> tuple:
         '''
@@ -192,18 +197,20 @@ class BaseEnvironment(gym.Env):
 
     def step_rewards(self, info: dict):
         # Reward agent for conserving fuel
-        reward = 1 if info["fuel_spent"] == 0 else -1
+        reward = 1 if info["fuel_spent"] == 0 else -3
 
         # Reward agent for moving closer to goal
-        # TODO
+        distance = self.entities["landingPad"].position - self.pencil.position
+        magnitude = self.entities["landingPad"].position.magnitude() - distance.magnitude()
+        reward += (magnitude * 10) / self.entities["landingPad"].position.magnitude()
 
         # Reward agent for successful landing vs crash landing
         if info["landed"]:
-            reward += 50
+            reward += 10
         if info["crashed"]:
-            reward -= 50
+            reward -= 30
         
-        return reward
+        return round(reward, 1)
 
     def render(self) -> None:
         '''
@@ -221,9 +228,7 @@ class BaseEnvironment(gym.Env):
         # For each entity, render if renderable
         for entity in self.entities.values():
             if entity.isRenderable:
-                # Calculate pivot and render entity around that
-                pivot = entity.position + entity._asset_size
-                images = entity.render(pivot)
+                images = entity.render(entity.position)
 
                 # Render all images that make up entity
                 for image, position in images:
