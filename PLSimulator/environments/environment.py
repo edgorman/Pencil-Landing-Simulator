@@ -7,7 +7,7 @@ from gym.spaces import Box
 from pygame import Vector2
 
 from PLSimulator.constants import ASSET_DATA_DIRECTORY
-from PLSimulator.entities.entity import Pencil
+from PLSimulator.entities.pencil import Pencil
 from PLSimulator.entities.entity import LandingPad
 from PLSimulator.entities.entity import Ground
 
@@ -47,8 +47,8 @@ class BaseEnvironment(gym.Env):
         self._fuel, self._dry_mass = max_fuel, 15
         self.entities = {
             'pencil': Pencil(),
-            'landingPad': LandingPad(),
-            'ground': Ground()
+            'ground': Ground(),
+            'landingPad': LandingPad()
         }
 
         # Set up forces
@@ -94,7 +94,6 @@ class BaseEnvironment(gym.Env):
             Returns:
                 state: Starting state of environment
         '''
-        self.end_sim_entities = [e for name, e in self.entities.items() if e.isCollidable and name != 'pencil']
         self.running = True
         return self.state()
 
@@ -123,16 +122,42 @@ class BaseEnvironment(gym.Env):
                 done: Whether the environment is done
                 info: Any extra information about environment
         '''
-        pencil = self.entities["pencil"]
         reward = 0
-        done = False
         info = {
-            "fuel_left": round(self._fuel, 1),
+            "landed": False,
             "crashed": False,
-            "ll_on_pad": False,
-            "rl_on_pad": False
+            "legs_on_pad": [],
+            "fuel_left": round(self._fuel, 1)
         }
 
+        # TODO: See if there's a better way of doing this
+        pencil = self.entities["pencil"]
+        ground = self.entities["ground"]
+        landing_pad = self.entities["landingPad"]
+        other_entities = [ground, landing_pad]
+
+        # Check for pencil collisions with other entities
+        collisions = []
+        for other in other_entities:
+            collisions.extend(pencil.collides_with(other))
+        collisions = set(collisions)
+
+        # Process collisions to detect end states
+        for c in collisions:
+            if pencil in c and ground in c or \
+               pencil in c and landing_pad in c or \
+               pencil.entities[3] in c and ground in c or \
+               pencil.entities[4] in c and ground in c:
+                info["crashed"] = True
+                break
+            
+            if pencil.entities[3] in c and landing_pad in c:
+                info["legs_on_pad"].append(pencil.entities[3])
+            if pencil.entities[4] in c and landing_pad in c:
+                info["legs_on_pad"].append(pencil.entities[4])
+        if not info["crashed"] and len(info["legs_on_pad"]) == 2:
+            info["landed"] = True
+        
         # Check if agent has enough fuel to fire engine
         if self._fuel <= 0:
             action[0] = 0
@@ -167,13 +192,7 @@ class BaseEnvironment(gym.Env):
         # Reward agent for moving closer to goal and conserving fuel
         reward += 1 if thrust.magnitude() < 1 else -1
 
-        # Determine if pencil has crashed
-        if any([pencil.collides_with(e) for e in self.end_sim_entities]):
-            done = True
-            reward -= 100
-            info["crashed"] = True
-
-        return self.state(), reward, done, info
+        return self.state(), reward, info["landed"] or info["crashed"], info
 
     def render(self) -> None:
         '''

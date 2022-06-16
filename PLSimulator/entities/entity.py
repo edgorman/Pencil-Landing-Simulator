@@ -80,7 +80,7 @@ class BaseEntity:
         if heading is not None:
             self.angle = heading
 
-    def render(self, pivot: Vector2 = Vector2(0, 0), offset: Vector2 = Vector2(0, 0), angle: float = 0, showNonCollidable: bool = True) -> list:
+    def render(self, pivot: Vector2 = Vector2(0, 0), offset: Vector2 = Vector2(0, 0), angle: float = 0) -> list:
         '''
             Render the entity and any sub-entities to the window
 
@@ -96,22 +96,51 @@ class BaseEntity:
         if not self.isRenderable:
             return []
 
-        # Return if should not show non collidable, and entity is not collidable
-        if not showNonCollidable and not self.isCollidable:
-            return []
-
-        # Render this entity
+        # Rotate this entity
         rotated_image = pygame.transform.rotozoom(self.image, self.angle + angle, 1)
         rotated_offset = offset.rotate(-(self.angle + angle))
         rotated_rect = rotated_image.get_rect(center = pivot + rotated_offset)
 
-        # Render all sub-entities
+        # Add rotated image to list
         images = [(rotated_image, rotated_rect)]
+
+        # Add all sub-entities as rotated images
         for entity in self.entities:
-            if entity.isRenderable:
-                images.extend(entity.render(pivot, entity.position, self.angle + angle, showNonCollidable))
+            images.extend(entity.render(pivot, entity.position, self.angle + angle))
 
         return images
+    
+    def polygon(self, pivot: Vector2 = Vector2(0, 0), offset: Vector2 = Vector2(0, 0), angle: float = 0) -> list:
+        '''
+            Calculate the polygon for this entity and any sub-entities
+
+            Parameters:
+                pivot: Position around which to rate
+                offset: Offset from the pivot to place image
+                angle: Heading of the image relative to parent
+
+            Returns:
+                images: List of rotated polygons to collide
+        '''
+        # Return if entity is not renderable or collidable
+        if not self.isRenderable or not self.isCollidable:
+            return []
+        
+        # Rotate this entity
+        rotated_image = pygame.transform.rotozoom(self.image, self.angle + angle, 1)
+        rotated_offset = offset.rotate(-(self.angle + angle))
+        rotated_rect = rotated_image.get_rect(center = pivot + rotated_offset)
+
+        # Add rotated polygon to list
+        vertices = [rotated_rect.topleft, rotated_rect.topright, rotated_rect.bottomright, rotated_rect.bottomleft]
+        polygons = [(self, Polygon(vertices))]
+
+        # Add all sub-entities as rotated polygons
+        for entity in self.entities:
+            polygons.extend(entity.polygon(pivot, entity.position, self.angle + angle))
+
+        return polygons
+
 
     def collides_with(self, other: "BaseEntity") -> bool:
         '''
@@ -124,52 +153,21 @@ class BaseEntity:
                 collision: Whether a collision has occurred
         '''
         # Return if entity is not collidable or renderable
-        if not self.isCollidable or not self.isRenderable:
-            return False
+        if not self.isCollidable or not other.isCollidable:
+            return []
 
-        # Generate the rectangles for each entity
-        this_rects = [r for _, r in self.render(self.position + self._asset_size, showNonCollidable=False)]
-        other_rects = [r for _, r in other.render(other.position + other._asset_size, showNonCollidable=False)]
-
-        # Convert these into polygon objects
-        this_polygons = [Polygon([r.topleft, r.topright, r.bottomright, r.bottomleft]) for r in this_rects]
-        other_polygons = [Polygon([r.topleft, r.topright, r.bottomright, r.bottomleft]) for r in other_rects]
+        # Generate polygons for both objects
+        this_polygons = self.polygon(self.position + self._asset_size)
+        other_polygons = other.polygon(other.position + other._asset_size)
 
         # For each polygon object, see if it intersects in any other polygon
-        for t in this_polygons:
-            for o in other_polygons:
-                if t.intersects(o):
-                    return True  # A collision has occurred, exit early
+        collisions = []
+        for this_object, this_polygon in this_polygons:
+            for other_object, other_polygon in other_polygons:
+                if this_polygon.intersects(other_polygon):
+                    collisions.append((this_object, other_object))
 
-        # No collision has occurred
-        return False
-
-
-class Pencil(BaseEntity):
-    '''
-        Pencil
-
-        This is the pencil entity class, including flame and rcs as sub-entities
-    '''
-
-    def __init__(self):
-        super().__init__(
-            'pencil.png', 
-            Vector2(16, 128),
-            Vector2(0, 0),
-            Vector2(0, 0),
-            0,
-            30,  # TODO: change start mass on reset method
-            [
-                BaseEntity('engine_firing.png', Vector2(16, 80), Vector2(0, 84), Vector2(0, 0), 0, 0, [], False, False),
-                BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, 53), Vector2(0, 0), 180, 0, [], False, False),
-                BaseEntity('rcs_firing.png', Vector2(16, 16), Vector2(14, -53), Vector2(0, 0), 0, 0, [], False, False),
-                BaseEntity('leg_left.png', Vector2(8, 32), Vector2(-9, 46), Vector2(0, 0), 0, 0, [], True, True),
-                BaseEntity('leg_right.png', Vector2(8, 32), Vector2(10, 46), Vector2(0, 0), 0, 0, [], True, True),
-            ],
-            True,
-            True
-        )
+        return collisions
 
 
 class LandingPad(BaseEntity):
