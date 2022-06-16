@@ -17,7 +17,7 @@ class BaseEntity:
     def __init__(
         self,
         asset_name: str,
-        asset_size: tuple,
+        asset_size: Vector2 = Vector2(64, 64),
         position: Vector2 = Vector2(0, 0),
         velocity: Vector2 = Vector2(0, 0),
         angle: float = 0,
@@ -54,7 +54,8 @@ class BaseEntity:
 
         image_path = os.path.join(ASSET_DATA_DIRECTORY, asset_name)
         self.image = pygame.image.load(image_path)
-        self.image = pygame.transform.scale(self.image, asset_size)
+        self.image = pygame.transform.flip(self.image, self._asset_size[0] < 0, self._asset_size[1] < 0)
+        self.image = pygame.transform.scale(self.image, (abs(self._asset_size[0]), abs(self._asset_size[1])))
 
     def update_position(self, force: Vector2, heading: float = None) -> None:
         '''

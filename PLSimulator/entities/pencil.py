@@ -20,10 +20,10 @@ class Pencil(BaseEntity):
             20,  # TODO: change start mass on reset method
             [
                 Engine(),
-                RCS(Vector2(14, 53), 180),
-                RCS(Vector2(14, -53), 0),
-                Leg('leg_left.png', Vector2(-9, 46)),
-                Leg('leg_right.png', Vector2(10, 46)),
+                RCS(Vector2(-13, -52), flip_x=True),
+                RCS(Vector2(14, -52), flip_x=False),
+                Leg(Vector2(-9, 46), flip_x=False),
+                Leg(Vector2(10, 46), flip_x=True),
             ],
             True,
             True
@@ -45,13 +45,14 @@ class Engine(BaseEntity):
         )
 
 class RCS(BaseEntity):
-    def __init__(self, position: Vector2, angle: float):
+    def __init__(self, position: Vector2, flip_x: bool):
+        asset_size = Vector2(-16, 16) if flip_x else Vector2(16, 16)
         super(RCS, self).__init__(
             'rcs_firing.png',
-            Vector2(16, 16),
+            asset_size,
             position,
             Vector2(0, 0),
-            angle,
+            0,
             1,
             [],
             False,
@@ -59,10 +60,11 @@ class RCS(BaseEntity):
         )
 
 class Leg(BaseEntity):
-    def __init__(self, image: str, position: Vector2):
+    def __init__(self, position: Vector2, flip_x: bool):
+        asset_size = Vector2(-8, 48) if flip_x else Vector2(8, 48)
         super(Leg, self).__init__(
-            image,
-            Vector2(8, 48),
+            "leg.png",
+            asset_size,
             position,
             Vector2(0, 0),
             0,
