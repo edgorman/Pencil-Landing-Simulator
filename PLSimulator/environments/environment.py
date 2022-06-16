@@ -24,7 +24,6 @@ class BaseEnvironment(gym.Env):
         self,
         gravity: float = 9.8,
         density: float = 1.0,
-        max_fuel: float = 20,
         bg_colour: tuple = (137, 207, 240),
         width: int = 640,
         height: int = 900) -> None:
@@ -34,7 +33,6 @@ class BaseEnvironment(gym.Env):
             Parameters:
                 gravity: Gravity of body (0 if none present)
                 density: Density of atmosphere (0 if none present)
-                max_fuel: Max amount of fuel available to agent
                 bg_colour: Colour of environment background
                 width: Width of the window (default is 640)
                 height: Height of the window (default is 900)
@@ -43,13 +41,12 @@ class BaseEnvironment(gym.Env):
                 None
         '''
         # Set up entities
-        self._max_fuel = max_fuel
-        self._fuel, self._dry_mass = max_fuel, 15
         self.entities = {
             'pencil': Pencil(),
             'ground': Ground(),
             'landingPad': LandingPad()
         }
+        self.pencil = self.entities["pencil"]
 
         # Set up forces
         self._rotation_scale = 0.1
@@ -107,6 +104,7 @@ class BaseEnvironment(gym.Env):
             Returns:
                 state: Information about the environment in relation to the agent
         '''
+        print(self.pencil.position)
         return [0, 0, 0, 0]
 
     def step(self, action: list) -> tuple:
@@ -122,82 +120,90 @@ class BaseEnvironment(gym.Env):
                 done: Whether the environment is done
                 info: Any extra information about environment
         '''
-        pencil = self.entities["pencil"]
-        reward = 0
         info = {
             "landed": False,
             "crashed": False,
-            "legs_on_pad": [],
-            "fuel_left": round(self._fuel, 1)
+            "legs_on_pad": 0,
+            "fuel_spent": 0,
+            "fuel_left": round(self.pencil.fuel_mass, 1)
         }
 
-        self.step_collisions(info, pencil)
-        self.step_physics(info, pencil, action)
-        self.step_rewards(info, pencil, reward)
+        self.step_collisions(info)
+        self.step_physics(info, action)
+        reward = self.step_rewards(info)
 
         return self.state(), reward, info["landed"] or info["crashed"], info
 
-    def step_collisions(self, info: dict, pencil: Pencil):
-        collisions = []
-
+    def step_collisions(self, info: dict):
         # Collect collisions between pencil and other entities
-        for other in [self.entities["ground"], self.entities["landingPad"]]:
-            collisions.extend(pencil.collides_with(other))
+        collisions = []
+        for entity in self.entities.values():
+            collisions.extend(self.pencil.collides_with(entity))
         collisions = set(collisions)
 
         # For each collision, check for crash/landing cases
         for c in collisions:
             # Detect if pencil is touching ground or landing pad
-            if pencil in c and self.entities["ground"] in c or \
-               pencil in c and self.entities["landingPad"] in c or \
-               pencil.entities[3] in c and self.entities["ground"] in c or \
-               pencil.entities[4] in c and self.entities["ground"] in c:
+            if self.pencil in c and self.entities["ground"] in c or \
+               self.pencil in c and self.entities["landingPad"] in c or \
+               self.pencil.entities[3] in c and self.entities["ground"] in c or \
+               self.pencil.entities[4] in c and self.entities["ground"] in c:
                 info["crashed"] = True
                 break
             
             # Detect if both legs are touching the landing pad
-            if pencil.entities[3] in c and self.entities["landingPad"] in c:
-                info["legs_on_pad"].append(pencil.entities[3])
-            if pencil.entities[4] in c and self.entities["landingPad"] in c:
-                info["legs_on_pad"].append(pencil.entities[4])
+            if self.pencil.entities[3] in c and self.entities["landingPad"] in c:
+                info["legs_on_pad"] += 1
+            if self.pencil.entities[4] in c and self.entities["landingPad"] in c:
+                info["legs_on_pad"] += 1
         
-        # Calculate if a landing has occurred
-        # TODO: Need to check velocity of pencil entity
-        if not info["crashed"] and len(info["legs_on_pad"]) == 2:
-            info["landed"] = True
+        # Check if both landing legs are on pad
+        if not info["crashed"] and info["legs_on_pad"] == 2:
+            # Check the pencil velocity and angle are within bounds
+            info["landed"] = abs(self.pencil.velocity.magnitude()) < 1 and abs(self.pencil.angle) < 2
+            info["crashed"] = not info["landed"]
     
-    def step_physics(self, info: dict, pencil: Pencil, action: list):
+    def step_physics(self, info: dict, action: list):
         # Check if agent has enough fuel to fire engine
-        # TODO: see if theres a nicer way to write this
-        if self._fuel <= 0:
-            action[0] = 0
-        elif abs(action[0]) > 0:
-            self._fuel -= 0.1
-            pencil.mass = self._dry_mass + self._fuel
+        if action[0] > 0:
+            if self.pencil.fire_engine() is True:
+                info["fuel_spent"] = 0.1
+            else:
+                action[0] = 0
 
         # Convert agent actions into forces
         thrust = -action[0] * 12 * self._force_scale
         left = -action[1] * 12 * self._rotation_scale
         right = action[2] * 12 * self._rotation_scale
-        heading = pencil.angle + left + right
-        pencil.update_entities(action)
+        heading = self.pencil.angle + left + right
+        self.pencil.update_entities(action)
 
         # Move pencil under the forces of its thrust, gravity and drag:
         thrust = thrust * Vector2(math.sin(math.radians(heading)), math.cos(math.radians(heading)))
         gravity = self._force_scale * Vector2(0, self._gravity)
         # drag is calculated using: Fd = 0.5 * Cd * A * p * V^2
         # TODO: drag coeff should be relative to angle of pencil (e.g. larger when horizontal)
-        drag = 0.5 * 0.82 * 1 * self._density * Vector2(pencil.velocity[0]**2, pencil.velocity[1]**2)
+        drag = 0.5 * 0.82 * 1 * self._density * Vector2(self.pencil.velocity[0]**2, self.pencil.velocity[1]**2)
         drag = self._force_scale * drag.rotate(180)
         
         # Update pencils position under external and internal forces
-        pencil.update_position(gravity + drag)
-        pencil.update_position(thrust, heading)
+        self.pencil.update_position(gravity + drag)
+        self.pencil.update_position(thrust, heading)
 
-    def step_rewards(self, info: dict, pencil: Pencil, reward: float):
-        # Reward agent for moving closer to goal and conserving fuel
-        # TODO: Reimplment this
-        reward += 1
+    def step_rewards(self, info: dict):
+        # Reward agent for conserving fuel
+        reward = 1 if info["fuel_spent"] == 0 else -1
+
+        # Reward agent for moving closer to goal
+        # TODO
+
+        # Reward agent for successful landing vs crash landing
+        if info["landed"]:
+            reward += 50
+        if info["crashed"]:
+            reward -= 50
+        
+        return reward
 
     def render(self) -> None:
         '''
@@ -213,7 +219,7 @@ class BaseEnvironment(gym.Env):
         self.window.fill(self._window_bg_colour)
 
         # For each entity, render if renderable
-        for _, entity in self.entities.items():
+        for entity in self.entities.values():
             if entity.isRenderable:
                 # Calculate pivot and render entity around that
                 pivot = entity.position + entity._asset_size

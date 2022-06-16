@@ -28,9 +28,19 @@ class Pencil(BaseEntity):
             True,
             True
         )
+
+        self.dry_mass = self.mass
+        self.start_fuel, self.fuel_mass = 20, 20
+        self.mass = self.dry_mass + self.fuel_mass
+    
+    def fire_engine(self):
+        if self.fuel_mass > 0:
+            self.fuel_mass -= 0.1
+            self.mass = self.dry_mass + self.fuel_mass
+            return True
+        return False
     
     def update_entities(self, action):
-        # Update pencil sub-entities rendering
         for i in range(len(action)):
             self.entities[i].isRenderable = action[i] != 0
 

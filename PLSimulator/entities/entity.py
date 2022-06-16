@@ -155,6 +155,10 @@ class BaseEntity:
         # Return if entity is not collidable or renderable
         if not self.isCollidable or not other.isCollidable:
             return []
+        
+        # Return if other entity is identical to self
+        if self == other:
+            return []
 
         # Generate polygons for both objects
         this_polygons = self.polygon(self.position + self._asset_size)
