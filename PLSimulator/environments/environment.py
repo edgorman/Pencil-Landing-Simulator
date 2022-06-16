@@ -131,15 +131,23 @@ class BaseEnvironment(gym.Env):
             "fuel_left": round(self._fuel, 1)
         }
 
-        # Check for pencil collisions with other entities
+        self.step_collisions(info, pencil)
+        self.step_physics(info, pencil, action)
+        self.step_rewards(info, pencil, reward)
+
+        return self.state(), reward, info["landed"] or info["crashed"], info
+
+    def step_collisions(self, info: dict, pencil: Pencil):
         collisions = []
+
+        # Collect collisions between pencil and other entities
         for other in [self.entities["ground"], self.entities["landingPad"]]:
             collisions.extend(pencil.collides_with(other))
         collisions = set(collisions)
 
-        # Process collisions to detect end states
+        # For each collision, check for crash/landing cases
         for c in collisions:
-            # Detect crash
+            # Detect if pencil is touching ground or landing pad
             if pencil in c and self.entities["ground"] in c or \
                pencil in c and self.entities["landingPad"] in c or \
                pencil.entities[3] in c and self.entities["ground"] in c or \
@@ -147,15 +155,20 @@ class BaseEnvironment(gym.Env):
                 info["crashed"] = True
                 break
             
-            # Detect landing
+            # Detect if both legs are touching the landing pad
             if pencil.entities[3] in c and self.entities["landingPad"] in c:
                 info["legs_on_pad"].append(pencil.entities[3])
             if pencil.entities[4] in c and self.entities["landingPad"] in c:
                 info["legs_on_pad"].append(pencil.entities[4])
+        
+        # Calculate if a landing has occurred
+        # TODO: Need to check velocity of pencil entity
         if not info["crashed"] and len(info["legs_on_pad"]) == 2:
             info["landed"] = True
-        
+    
+    def step_physics(self, info: dict, pencil: Pencil, action: list):
         # Check if agent has enough fuel to fire engine
+        # TODO: see if theres a nicer way to write this
         if self._fuel <= 0:
             action[0] = 0
         elif abs(action[0]) > 0:
@@ -181,10 +194,10 @@ class BaseEnvironment(gym.Env):
         pencil.update_position(gravity + drag)
         pencil.update_position(thrust, heading)
 
+    def step_rewards(self, info: dict, pencil: Pencil, reward: float):
         # Reward agent for moving closer to goal and conserving fuel
-        reward += 1 if thrust.magnitude() < 1 else -1
-
-        return self.state(), reward, info["landed"] or info["crashed"], info
+        # TODO: Reimplment this
+        reward += 1
 
     def render(self) -> None:
         '''
