@@ -22,6 +22,7 @@ class BaseAgent:
                 None
         '''
         self._model_dir = os.path.join(MODEL_DATA_DIRECTORY, model_name)
+        self._keep_files = ['.gitkeep']
 
     @abstractmethod
     def reset(self) -> None:
@@ -95,7 +96,7 @@ class BaseAgent:
         '''
         dir = os.path.join(MODEL_DATA_DIRECTORY, sub_dir)
         for f in os.listdir(dir):
-            if f == ".gitkeep":
+            if f in self._keep_files:
                 continue
             
             a = os.path.join(dir, f)

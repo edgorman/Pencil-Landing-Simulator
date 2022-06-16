@@ -94,6 +94,7 @@ class BaseEnvironment(gym.Env):
             Returns:
                 state: Starting state of environment
         '''
+        self.end_sim_entities = [e for name, e in self.entities.items() if e.isCollidable and name != 'pencil']
         self.running = True
         return self.state()
 
@@ -125,7 +126,12 @@ class BaseEnvironment(gym.Env):
         pencil = self.entities["pencil"]
         reward = 0
         done = False
-        info = {}
+        info = {
+            "fuel_left": round(self._fuel, 1),
+            "crashed": False,
+            "ll_on_pad": False,
+            "rl_on_pad": False
+        }
 
         # Check if agent has enough fuel to fire engine
         if self._fuel <= 0:
@@ -158,10 +164,14 @@ class BaseEnvironment(gym.Env):
         for i in range(len(action)):
             pencil.entities[i].isRenderable = action[i] != 0
         
-        # Determine if pencil has entered a final state
-        collidable_entities = [e for name, e in self.entities.items() if e.isCollidable and name != 'pencil']
-        if any([pencil.collides_with(e) for e in collidable_entities]):
+        # Reward agent for moving closer to goal and conserving fuel
+        reward += 1 if thrust.magnitude() < 1 else -1
+
+        # Determine if pencil has crashed
+        if any([pencil.collides_with(e) for e in self.end_sim_entities]):
             done = True
+            reward -= 100
+            info["crashed"] = True
 
         return self.state(), reward, done, info
 
