@@ -34,4 +34,4 @@ class PPOAgent(BaseAgent):
         return None
     
     def clear(self):
-        super().clear("ppo")
+        self.clear_dir("ppo")

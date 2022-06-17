@@ -84,20 +84,27 @@ class BaseAgent:
                 None
         '''
 
-    def clear(self, sub_dir: str = '') -> None:
+    @abstractmethod
+    def clear(self) -> None:
         '''
-            Clear the saved model parameters from local folder
+            Clear the saved model from local storage
 
             Parameters:
-                sub_dir: Current sub directory
+                None
 
             Returns
                 None
         '''
-        dir = os.path.join(MODEL_DATA_DIRECTORY, sub_dir)
-        for f in os.listdir(dir):
+
+    def clear_dir(self, dir: str = '') -> None:
+        path = os.path.join(MODEL_DATA_DIRECTORY, dir)
+        for f in os.listdir(path):
             if f in self._keep_files:
                 continue
             
-            a = os.path.join(dir, f)
-            self.clear(a) if os.path.isdir(a) else os.remove(a)
+            a = os.path.join(path, f)
+            if os.path.isdir(a):
+                self.clear_dir(a)
+                os.removedirs(a)
+            else:
+                os.remove(a)

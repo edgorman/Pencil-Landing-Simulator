@@ -14,7 +14,7 @@ class Pencil(BaseEntity):
         super().__init__(
             'pencil.png', 
             Vector2(16, 128),
-            Vector2(0, 0),
+            Vector2(312, 64),
             Vector2(0, 0),
             0,
             20,

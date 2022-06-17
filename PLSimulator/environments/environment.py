@@ -60,9 +60,9 @@ class BaseEnvironment(gym.Env):
             np.array([1, 1, 1], dtype=np.float32),
             dtype=np.float32
         )
-        self.observation_space = Box(
-            np.array([-1, 0, 0, 0], dtype=np.float32),
-            np.array([1, 1, 1, 1], dtype=np.float32),
+        self.observation_space = Box( 
+            np.array([-1, -1, -1, -1, -1], dtype=np.float32),
+            np.array([1, 1, 1, 1, 1], dtype=np.float32),
             dtype=np.float32
         )
 
@@ -70,16 +70,7 @@ class BaseEnvironment(gym.Env):
         self._window_width = width
         self._window_height = height
         self._window_bg_colour = bg_colour
-        image_path = os.path.join(ASSET_DATA_DIRECTORY, 'pencil.png')
-        self._icon = pygame.image.load(image_path).subsurface(0, 0, 16, 16)
-        pygame.display.set_icon(self._icon)
-        pygame.display.set_caption('Pencil Landing Simulator')
-
-        # Set up pygame
-        pygame.init()
-        self.window = pygame.display.set_mode((self._window_width, self._window_height))
-        self.clock = pygame.time.Clock()
-        self.running = False
+        self.window = None
 
     def reset(self) -> list:
         '''
@@ -91,7 +82,11 @@ class BaseEnvironment(gym.Env):
             Returns:
                 state: Starting state of environment
         '''
-        self.running = True
+        self.pencil.position = Vector2(312, 64)
+        self.pencil.velocity = Vector2(0, 0)
+        self.pencil.angle = 0
+        self.pencil.fuel_mass = self.pencil.start_fuel
+
         return self.state()
 
     def state(self) -> list:
@@ -104,13 +99,17 @@ class BaseEnvironment(gym.Env):
             Returns:
                 state: Information about the environment in relation to the agent
         '''
-        return [
-            round(self.entities["landingPad"].position[0] - self.pencil.position[0], 1),
-            round(self.entities["landingPad"].position[1] - self.pencil.position[1], 1),
-            round(self.pencil.velocity[0], 1),
-            round(self.pencil.velocity[1], 1),
-            round(self.pencil.angle, 1)
-        ]
+        return np.clip(
+            np.array([
+                round((self.entities["landingPad"].position[0] - self.pencil.position[0]) / self._window_width, 1),
+                round((self.entities["landingPad"].position[1] - self.pencil.position[1]) / self._window_height, 1),
+                round(self.pencil.velocity[0] / 100, 1),
+                round(self.pencil.velocity[1] / 100, 1),
+                round(self.pencil.angle / 360, 1)
+            ], dtype=np.float32),
+            -1,
+            1
+        )
 
     def step(self, action: list) -> tuple:
         '''
@@ -167,6 +166,10 @@ class BaseEnvironment(gym.Env):
             # Check the pencil velocity and angle are within bounds
             info["landed"] = abs(self.pencil.velocity.magnitude()) < 1 and abs(self.pencil.angle) < 2
             info["crashed"] = not info["landed"]
+        
+        # Check if pencil is within bounds of screen
+        if self.pencil.position[0] < 0 or self.pencil.position[0] > self._window_width or self.pencil.position[1] < 0:
+            info["crashed"] = True
     
     def step_physics(self, info: dict, action: list):
         # Check if agent has enough fuel to fire engine
@@ -197,7 +200,8 @@ class BaseEnvironment(gym.Env):
 
     def step_rewards(self, info: dict):
         # Reward agent for conserving fuel
-        reward = 1 if info["fuel_spent"] == 0 else -3
+        reward = 0
+        reward += 1 if info["fuel_spent"] == 0 else -1
 
         # Reward agent for moving closer to goal
         distance = self.entities["landingPad"].position - self.pencil.position
@@ -206,9 +210,9 @@ class BaseEnvironment(gym.Env):
 
         # Reward agent for successful landing vs crash landing
         if info["landed"]:
-            reward += 10
+            reward += 100
         if info["crashed"]:
-            reward -= 30
+            reward -= 100
         
         return round(reward, 1)
 
@@ -222,6 +226,17 @@ class BaseEnvironment(gym.Env):
             Returns:
                 None
         '''
+        # Set up pygame
+        if self.window is None:
+            image_path = os.path.join(ASSET_DATA_DIRECTORY, 'pencil.png')
+            self._icon = pygame.image.load(image_path).subsurface(0, 0, 16, 16)
+            pygame.display.set_icon(self._icon)
+            pygame.display.set_caption('Pencil Landing Simulator')
+
+            pygame.init()
+            self.window = pygame.display.set_mode((self._window_width, self._window_height))
+            self.clock = pygame.time.Clock()
+
         # Clear screen
         self.window.fill(self._window_bg_colour)
 
