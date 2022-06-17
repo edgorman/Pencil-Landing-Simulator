@@ -27,6 +27,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
             None
     '''
     # Set up environment
+    done, quit = False, False
     environment.reset()
     Log.info("User has started the simulation.")
 
@@ -35,13 +36,13 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
     keys = [False, False, False]
 
     # Iterate until environment has finished
-    while environment.running:
+    while not done and not quit:
         # Process pygame events
         events = pygame.event.get()
         for event in events:
             # Check for manual exit
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                environment.running = False
+                quit = True
 
             # Check for key presses
             if event.type == pygame.KEYDOWN:
@@ -70,7 +71,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
         if fps > 0:
             environment.render()
             environment.clock.tick(fps)
-        Log.info(f"State: {state}, Action: {action}, Reward: {reward}, Done: {done}.")
+        Log.info(f"State: {state}, Action: {action}, Reward: {reward}, Done: {done}, Info: {info}.")
     Log.success("Agent has finished the simulation.")
 
 
@@ -87,20 +88,17 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
             None
     '''
     # Set up environment
+    done = False
     environment.reset()
     Log.info("Agent has started the simulation.")
 
     # Iterate until environment has finished
-    while environment.running:
+    while not done:
         # Step through environment once
         state = environment.state()
 
         # Get action of the agent
         action = agent.step(state)
-
-        # Toggle pencil sub entities on/off
-        for i in range(len(action)):
-            environment._pencil.entities[i].isRenderable = abs(action[i]) > 0
 
         # Update the environment with the action
         state, reward, done, info = environment.step(action)
@@ -109,17 +107,17 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
         if fps > 0:
             environment.render()
             environment.clock.tick(fps)
-        Log.info(f"State: {state}, Action: {action}, Reward: {reward}, Done: {done}.")
+        Log.info(f"State: {state}, Action: {action}, Reward: {reward}, Done: {done}, Info: {info}.")
     Log.success(f"Agent has finished the simulation.")
 
 
-def train(agent: BaseAgent, num_iterations: int = 10) -> BaseAgent:
+def train(agent: BaseAgent, episode_length: int = 10) -> BaseAgent:
     '''
         Train the agent in the environment given
 
         Parameters:
             agent: The agent to train in the environment
-            num_iterations: Number of iterations to train agent
+            episode_length: Number of episodes to train agent
 
         Returns:
             None
@@ -129,32 +127,24 @@ def train(agent: BaseAgent, num_iterations: int = 10) -> BaseAgent:
     info = ray.init(ignore_reinit_error=True)
     Log.success(f"Loaded dashboard at http://{info['webui_url']}")
 
-    results = []
-    episode_data = []
-    episode_json = []
-
     Log.info("Clearing previous training...")
     agent.clear()
 
     # Start agent training
     Log.info("Starting training...")
-    for n in range(num_iterations):
+    for n in range(episode_length):
+        # Train the agent for this episode
         result = agent.train()
-
-        # Store results for each iteration
-        results.append(result)
-        
-        episode = {'n': n, 
-               'episode_reward_min': result['episode_reward_min'], 
-               'episode_reward_mean': result['episode_reward_mean'], 
-               'episode_reward_max': result['episode_reward_max'],  
-               'episode_len_mean': result['episode_len_mean']}
-    
-        episode_data.append(episode)
-        episode_json.append(json.dumps(episode))
+        episode = {
+            'episode': n,
+            'min': result['episode_reward_min'], 
+            'mean': result['episode_reward_mean'], 
+            'max': result['episode_reward_max'],  
+        }
 
         # Save this model to local folder
         agent.save()
+        Log.info(f"{episode}.")
     Log.success("Finished training agent.")
 
 
@@ -184,7 +174,7 @@ def main(args: dict) -> None:
         Log.success("Finished initialising RL agent.")
 
         Log.info("Train RL agent.")
-        # train(agent, ENVIRONMENT_OBJECTS_DICT[args.env])
+        train(agent, episode_length=10)
         Log.success("Finished training RL agent.")
 
         Log.info("Loading the environment in agent mode.")
