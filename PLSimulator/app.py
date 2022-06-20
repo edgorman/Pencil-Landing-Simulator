@@ -29,6 +29,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
     # Set up environment
     done, quit = False, False
     environment.reset()
+    environment.render()
     Log.info("User has started the simulation.")
 
     # Store which keys have been pressed down or up
@@ -90,6 +91,7 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
     # Set up environment
     done = False
     environment.reset()
+    environment.render()
     Log.info("Agent has started the simulation.")
 
     # Iterate until environment has finished
@@ -111,7 +113,7 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
     Log.success(f"Agent has finished the simulation.")
 
 
-def train(agent: BaseAgent, episode_length: int = 10) -> BaseAgent:
+def train(agent: BaseAgent, episode_length: int = 1) -> BaseAgent:
     '''
         Train the agent in the environment given
 
@@ -124,8 +126,7 @@ def train(agent: BaseAgent, episode_length: int = 10) -> BaseAgent:
     '''
     # Set up Ray
     Log.info("Loading Ray...")
-    info = ray.init(ignore_reinit_error=True)
-    Log.success(f"Loaded dashboard at http://{info['webui_url']}")
+    ray.init(ignore_reinit_error=True)
 
     Log.info("Clearing previous training...")
     agent.clear()
@@ -137,15 +138,15 @@ def train(agent: BaseAgent, episode_length: int = 10) -> BaseAgent:
         result = agent.train()
         episode = {
             'episode': n,
-            'min': result['episode_reward_min'], 
-            'mean': result['episode_reward_mean'], 
-            'max': result['episode_reward_max'],  
+            'min': round(result['episode_reward_min'], 1), 
+            'mean': round(result['episode_reward_mean'], 1), 
+            'max': round(result['episode_reward_max'], 1), 
         }
 
         # Save this model to local folder
-        agent.save()
-        Log.info(f"{episode}.")
-    Log.success("Finished training agent.")
+        if n % 10 == 0:
+            agent.save()
+            Log.info(f"{episode}.")
 
 
 def main(args: dict) -> None:
@@ -174,7 +175,7 @@ def main(args: dict) -> None:
         Log.success("Finished initialising RL agent.")
 
         Log.info("Train RL agent.")
-        train(agent, episode_length=10)
+        train(agent, episode_length=100)
         Log.success("Finished training RL agent.")
 
         Log.info("Loading the environment in agent mode.")

@@ -101,11 +101,11 @@ class BaseEnvironment(gym.Env):
         '''
         return np.clip(
             np.array([
-                round((self.entities["landingPad"].position[0] - self.pencil.position[0]) / self._window_width, 1),
-                round((self.entities["landingPad"].position[1] - self.pencil.position[1]) / self._window_height, 1),
-                round(self.pencil.velocity[0] / 100, 1),
-                round(self.pencil.velocity[1] / 100, 1),
-                round(self.pencil.angle / 360, 1)
+                round((self.entities["landingPad"].position - self.pencil.position)[0] / self._window_width, 1),
+                round((self.entities["landingPad"].position - self.pencil.position)[1] / self._window_height, 1),
+                round((self.entities["landingPad"].velocity - self.pencil.velocity)[0] / 100, 1),
+                round((self.entities["landingPad"].velocity - self.pencil.velocity)[1] / 100, 1),
+                round((self.entities["landingPad"].angle - self.pencil.angle) / 90, 1)
             ], dtype=np.float32),
             -1,
             1
@@ -127,9 +127,9 @@ class BaseEnvironment(gym.Env):
         info = {
             "landed": False,
             "crashed": False,
+            "fuel_left": round(self.pencil.fuel_mass, 1),
             "legs_on_pad": 0,
-            "fuel_spent": 0,
-            "fuel_left": round(self.pencil.fuel_mass, 1)
+            "land_velocity": 0
         }
 
         self.step_collisions(info)
@@ -164,7 +164,11 @@ class BaseEnvironment(gym.Env):
         # Check if both landing legs are on pad
         if not info["crashed"] and info["legs_on_pad"] == 2:
             # Check the pencil velocity and angle are within bounds
-            info["landed"] = abs(self.pencil.velocity.magnitude()) < 1 and abs(self.pencil.angle) < 2
+            velCondition = abs(self.entities["landingPad"].velocity.magnitude() - self.pencil.velocity.magnitude()) < 2
+            angCondition = abs(self.entities["landingPad"].angle - self.pencil.angle) < 5
+            
+            # Update landed and crashed states
+            info["landed"] = velCondition and angCondition
             info["crashed"] = not info["landed"]
         
         # Check if pencil is within bounds of screen
@@ -173,11 +177,8 @@ class BaseEnvironment(gym.Env):
     
     def step_physics(self, info: dict, action: list):
         # Check if agent has enough fuel to fire engine
-        if action[0] > 0:
-            if self.pencil.fire_engine() is True:
-                info["fuel_spent"] = 0.1
-            else:
-                action[0] = 0
+        if action[0] > 0 and not self.pencil.fire_engine():
+            action[0] = 0
 
         # Convert agent actions into forces
         thrust = -action[0] * 12 * self._force_scale
@@ -201,18 +202,25 @@ class BaseEnvironment(gym.Env):
     def step_rewards(self, info: dict):
         # Reward agent for conserving fuel
         reward = 0
-        reward += 1 if info["fuel_spent"] == 0 else -1
 
         # Reward agent for moving closer to goal
         distance = self.entities["landingPad"].position - self.pencil.position
         magnitude = self.entities["landingPad"].position.magnitude() - distance.magnitude()
         reward += (magnitude * 10) / self.entities["landingPad"].position.magnitude()
 
+        # Reward agent for staying perpendicular to goal
+        offset = abs(self.pencil.angle - self.entities["landingPad"].angle)
+        reward += 5 if offset < 5 else offset * -1
+
+        # Reward agent for having low velocity close to goal
+        if abs(self.entities["landingPad"].velocity.magnitude() - self.pencil.velocity.magnitude()) < 2:
+            reward += 10
+
         # Reward agent for successful landing vs crash landing
         if info["landed"]:
-            reward += 100
+            reward += 1000 + info["fuel_left"] * 10
         if info["crashed"]:
-            reward -= 100
+            reward -= 1000
         
         return round(reward, 1)
 
