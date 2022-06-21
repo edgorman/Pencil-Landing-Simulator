@@ -1,3 +1,4 @@
+import os
 from ray.rllib.agents import ppo
 
 from PLSimulator.agents.agent import BaseAgent
@@ -30,8 +31,14 @@ class PPOAgent(BaseAgent):
     def save(self):
         self.model.save(self._model_dir)
     
-    def load(self):
-        return None
-    
-    def clear(self):
-        self.clear_dir("ppo")
+    def load(self, number):
+        if number == 'last':
+            number = max([int(c[11:]) for c in os.listdir(self._model_dir)])
+        
+        self.model.restore(
+            os.path.join(
+                self._model_dir,
+                f"checkpoint_{str(number).zfill(6)}",
+                f"checkpoint-{number}"
+            )
+        )

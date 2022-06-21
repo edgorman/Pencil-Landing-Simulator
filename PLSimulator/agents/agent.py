@@ -22,7 +22,8 @@ class BaseAgent:
                 None
         '''
         self._model_dir = os.path.join(MODEL_DATA_DIRECTORY, model_name)
-        self._keep_files = ['.gitkeep']
+        if not os.path.exists(self._model_dir):
+            os.makedirs(self._model_dir)
 
     @abstractmethod
     def reset(self) -> None:
@@ -84,8 +85,7 @@ class BaseAgent:
                 None
         '''
 
-    @abstractmethod
-    def clear(self) -> None:
+    def clear(self, dir: str = '') -> None:
         '''
             Clear the saved model from local storage
 
@@ -95,16 +95,11 @@ class BaseAgent:
             Returns
                 None
         '''
-
-    def clear_dir(self, dir: str = '') -> None:
         path = os.path.join(MODEL_DATA_DIRECTORY, dir)
         for f in os.listdir(path):
-            if f in self._keep_files:
-                continue
-            
             a = os.path.join(path, f)
             if os.path.isdir(a):
-                self.clear_dir(a)
+                self.clear(a)
                 os.removedirs(a)
             else:
                 os.remove(a)
