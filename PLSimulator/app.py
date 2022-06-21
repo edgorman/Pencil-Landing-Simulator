@@ -1,5 +1,4 @@
 import ray
-import json
 import pygame
 from ray.tune.registry import register_env
 
@@ -128,6 +127,7 @@ def train(agent: BaseAgent, episode_length: int = 1) -> BaseAgent:
     Log.info("Loading Ray...")
     ray.init(ignore_reinit_error=True)
 
+    # Set up agent
     Log.info("Clearing previous training...")
     agent.clear()
 
@@ -161,24 +161,33 @@ def main(args: dict) -> None:
     '''
     agent = AGENT_OBJCECTS_DICT[args.agent]
     environment = BaseEnvironment
+    env_name = args.env+"-v0"
 
     if args.agent == 'manual':
-        Log.info("Loading the environment in manual mode.")
+        Log.info("Rendering the environment in manual mode.")
         manual(environment())
     else:
         Log.info("Registering RL environment.")
-        register_env(args.env+"-v0", lambda config: environment())
+        register_env(env_name, lambda config: environment())
         Log.success("Finished registering RL environment.")
 
         Log.info("Initialise RL agent.")
-        agent = agent(args.env+"-v0")
+        agent = agent(env_name)
         Log.success("Finished initialising RL agent.")
 
-        Log.info("Train RL agent.")
-        train(agent, episode_length=100)
-        Log.success("Finished training RL agent.")
+        if args.load == "":
+            Log.info("Train RL agent.")
+            train(agent, episode_length=100)
+            Log.success("Finished training RL agent.")
+        else:
+            Log.info("Load RL agent.")
+            try:
+                agent.load(args.load)
+            except Exception as e:
+                Log.error(str(e))
+            Log.success("Finished loading RL agent.")
 
-        Log.info("Loading the environment in agent mode.")
+        Log.info("Rendering the environment in agent mode.")
         simulate(agent, environment())
 
-    Log.success("Exiting application.")
+    Log.success("Finished environment, exiting application.")

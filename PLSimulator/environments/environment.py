@@ -170,6 +170,7 @@ class BaseEnvironment(gym.Env):
             # Update landed and crashed states
             info["landed"] = velCondition and angCondition
             info["crashed"] = not info["landed"]
+        info["land_velocity"] = round(abs((self.entities["landingPad"].velocity - self.pencil.velocity).magnitude()), 1)
         
         # Check if pencil is within bounds of screen
         if self.pencil.position[0] < 0 or self.pencil.position[0] > self._window_width or self.pencil.position[1] < 0:
