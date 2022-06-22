@@ -33,7 +33,7 @@ class PPOAgent(BaseAgent):
     
     def load(self, number):
         if number == 'last':
-            number = max([int(c[11:]) for c in os.listdir(self._model_dir)])
+            number = max([int(c[11:]) for c in os.listdir(self._model_dir) if c.startswith("checkpoint")])
         
         self.model.restore(
             os.path.join(
