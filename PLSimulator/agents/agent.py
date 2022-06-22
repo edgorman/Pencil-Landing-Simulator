@@ -1,5 +1,6 @@
 import os
 from abc import abstractmethod
+import matplotlib.pyplot as plt
 
 from PLSimulator.constants import MODEL_DATA_DIRECTORY
 
@@ -95,7 +96,7 @@ class BaseAgent:
             Returns
                 None
         '''
-        path = os.path.join(MODEL_DATA_DIRECTORY, dir)
+        path = os.path.join(self._model_dir, dir)
         for f in os.listdir(path):
             a = os.path.join(path, f)
             if os.path.isdir(a):
@@ -103,3 +104,23 @@ class BaseAgent:
                 os.removedirs(a)
             else:
                 os.remove(a)
+
+    def graph(self, episode_data: dict) -> None:
+        '''
+            Save the episode data as a graph
+
+            Parameters:
+                episode_data: The data from the training run
+            
+            Returns:
+                None
+        '''
+        plt.plot(figsize=(5, 2.7), layout='constrained')
+        plt.plot([e['min'] for e in episode_data], label='min')
+        plt.plot([e['mean'] for e in episode_data], label='mean')
+        plt.plot([e['max'] for e in episode_data], label='max')
+        plt.xlabel('episode')
+        plt.ylabel('reward')
+        plt.title("Rewards per episode")
+        plt.legend()
+        plt.savefig(os.path.join(self._model_dir, 'rewards_per_episode.png'))
