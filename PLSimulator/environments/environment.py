@@ -133,7 +133,7 @@ class BaseEnvironment(gym.Env):
         }
 
         self.step_collisions(info)
-        self.step_physics(info, action)
+        self.step_physics(action)
         reward = self.step_rewards(info)
 
         return self.state(), reward, info["landed"] or info["crashed"], info
@@ -176,7 +176,7 @@ class BaseEnvironment(gym.Env):
         if self.pencil.position[0] < 0 or self.pencil.position[0] > self._window_width or self.pencil.position[1] < 0:
             info["crashed"] = True
     
-    def step_physics(self, info: dict, action: list):
+    def step_physics(self, action: list):
         # Check if agent has enough fuel to fire engine
         if action[0] > 0 and not self.pencil.fire_engine():
             action[0] = 0

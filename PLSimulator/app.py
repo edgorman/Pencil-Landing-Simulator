@@ -130,24 +130,43 @@ def train(agent: BaseAgent, episode_length: int = 1) -> BaseAgent:
     # Set up agent
     Log.info("Clearing previous training...")
     agent.clear()
+    
+    # Set up episode history
+    episodes = []
+    save_frequency = max(1, round(episode_length / 10))
 
     # Start agent training
-    Log.info("Starting training...")
-    for n in range(episode_length):
+    Log.info(f"Starting training for {episode_length} episodes...")
+    for n in range(1, episode_length + 1):
         # Train the agent for this episode
         result = agent.train()
+
+        # Store results
         episode = {
-            'episode': n,
             'min': round(result['episode_reward_min'], 1), 
             'mean': round(result['episode_reward_mean'], 1), 
             'max': round(result['episode_reward_max'], 1), 
         }
+        episodes.append(episode)
+        Log.info(f"Episode {n} -> {episode}.")
 
-        # Save this model to local folder
-        if n % 10 == 0:
+        # Save current model to local folder
+        if n % save_frequency == 0 or n == 1:
             agent.save()
-            Log.info(f"{episode}.")
+            Log.info(f"Saving episode {n}.")
+    
+    # Save last model if not saved already
+    if episode_length % 10 != 0:
+        agent.save()
+        Log.info(f"Saving episode {n}.")
 
+    # Generate analysis graphs
+    Log.info("Generating graphs for training.")
+    agent.graph(episodes)
+
+    # Shutting down Ray
+    Log.info("Closing Ray...")
+    ray.shutdown()
 
 def main(args: dict) -> None:
     '''
@@ -177,7 +196,7 @@ def main(args: dict) -> None:
 
         if args.load == "":
             Log.info("Train RL agent.")
-            train(agent, episode_length=100)
+            train(agent, episode_length=31)
             Log.success("Finished training RL agent.")
         else:
             Log.info("Load RL agent.")

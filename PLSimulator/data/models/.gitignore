@@ -1,0 +1,4 @@
+# Ignore every file in data/models except for this .gitignore file
+*
+*/
+!.gitignore

@@ -29,6 +29,7 @@ dependencies:
   - colorama
   - setuptools
   - redis
+  - matplotlib
   - pip:
     - pygame==2.1.2
     - ray[rllib]
