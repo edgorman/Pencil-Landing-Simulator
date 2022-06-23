@@ -12,17 +12,18 @@ class BaseAgent:
         This is the agent class from which all other agents will inherit.
     '''
 
-    def __init__(self, model_name) -> None:
+    def __init__(self, model_name, env_name) -> None:
         '''
             Initialise the agent.
 
             Parameters:
-                None
+                model_name: Class name of model
+                env_name: Class name of environment
 
             Returns:
                 None
         '''
-        self._model_dir = os.path.join(MODEL_DATA_DIRECTORY, model_name)
+        self._model_dir = os.path.join(MODEL_DATA_DIRECTORY, model_name, env_name)
         if not os.path.exists(self._model_dir):
             os.makedirs(self._model_dir)
 

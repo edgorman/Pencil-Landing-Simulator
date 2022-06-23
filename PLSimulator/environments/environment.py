@@ -5,6 +5,7 @@ import pygame
 import numpy as np
 from gym.spaces import Box
 from pygame import Vector2
+from ray.rllib.env.env_context import EnvContext
 
 from PLSimulator.constants import ASSET_DATA_DIRECTORY
 from PLSimulator.entities.pencil import Pencil
@@ -20,22 +21,12 @@ class BaseEnvironment(gym.Env):
         It inherits from the gym environment class.
     '''
 
-    def __init__(
-        self,
-        gravity: float = 9.8,
-        density: float = 1.0,
-        bg_colour: tuple = (137, 207, 240),
-        width: int = 640,
-        height: int = 900) -> None:
+    def __init__(self, config: EnvContext) -> None:
         '''
             Initialise the environment
 
             Parameters:
-                gravity: Gravity of body (0 if none present)
-                density: Density of atmosphere (0 if none present)
-                bg_colour: Colour of environment background
-                width: Width of the window (default is 640)
-                height: Height of the window (default is 900)
+                config: The parameters used to initialise the environment
 
             Returns:
                 None
@@ -51,8 +42,8 @@ class BaseEnvironment(gym.Env):
         # Set up forces
         self._rotation_scale = 0.1
         self._force_scale = 0.35
-        self._gravity = gravity
-        self._density = density
+        self._gravity = config["gravity"]
+        self._density = config["density"]
 
         # Set up environment
         self.action_space = Box(
@@ -67,9 +58,9 @@ class BaseEnvironment(gym.Env):
         )
 
         # Set up window
-        self._window_width = width
-        self._window_height = height
-        self._window_bg_colour = bg_colour
+        self._window_width = config["width"]
+        self._window_height = config["height"]
+        self._window_bg_colour = config["bg_colour"]
         self.window = None
 
     def reset(self) -> list:
