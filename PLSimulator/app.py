@@ -5,6 +5,7 @@ from ray.tune.registry import register_env
 from PLSimulator.log import Log
 from PLSimulator.agents.agent import BaseAgent
 from PLSimulator.agents.ppo import PPOAgent
+from PLSimulator.constants import ENV_CONFIG
 from PLSimulator.environments.environment import BaseEnvironment
 
 
@@ -180,18 +181,18 @@ def main(args: dict) -> None:
     '''
     agent = AGENT_OBJCECTS_DICT[args.agent]
     environment = BaseEnvironment
-    env_name = args.env+"-v0"
+    env_config = ENV_CONFIG[args.env]
 
     if args.agent == 'manual':
         Log.info("Rendering the environment in manual mode.")
-        manual(environment())
+        manual(environment(env_config))
     else:
         Log.info("Registering RL environment.")
-        register_env(env_name, lambda config: environment())
+        register_env(env_config["name"], lambda config: environment(config))
         Log.success("Finished registering RL environment.")
 
         Log.info("Initialise RL agent.")
-        agent = agent(env_name)
+        agent = agent(env_config)
         Log.success("Finished initialising RL agent.")
 
         if args.load == "":
@@ -207,6 +208,6 @@ def main(args: dict) -> None:
             Log.success("Finished loading RL agent.")
 
         Log.info("Rendering the environment in agent mode.")
-        simulate(agent, environment())
+        simulate(agent, environment(env_config))
 
-    Log.success("Finished environment, exiting application.")
+    Log.info("Exiting application.")

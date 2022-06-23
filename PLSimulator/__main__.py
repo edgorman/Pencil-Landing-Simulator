@@ -17,8 +17,8 @@ if __name__ == '__main__':
     colorama.init(convert=True)
 
     # Configure agent and environment choices
-    agent_choices = list(app.AGENT_OBJCECTS_DICT.keys())
     env_choices = list(constants.ENV_CONFIG.keys())
+    agent_choices = list(app.AGENT_OBJCECTS_DICT.keys())
 
     # Parse input arguments
     parser = argparse.ArgumentParser(prog="PLSimulator", description="Train an agent to propulsively land.")
