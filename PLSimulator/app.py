@@ -110,7 +110,7 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
             environment.render()
             environment.clock.tick(fps)
         Log.info(f"State: {state}, Action: {action}, Reward: {reward}, Done: {done}, Info: {info}.")
-    Log.success(f"Agent has finished the simulation.")
+    Log.success("Agent has finished the simulation.")
 
 
 def train(agent: BaseAgent, episode_length: int = 1) -> BaseAgent:
@@ -131,7 +131,7 @@ def train(agent: BaseAgent, episode_length: int = 1) -> BaseAgent:
     # Set up agent
     Log.info("Clearing previous training...")
     agent.clear()
-    
+
     # Set up episode history
     episodes = []
     save_frequency = max(1, round(episode_length / 10))
@@ -144,9 +144,9 @@ def train(agent: BaseAgent, episode_length: int = 1) -> BaseAgent:
 
         # Store results
         episode = {
-            'min': round(result['episode_reward_min'], 1), 
-            'mean': round(result['episode_reward_mean'], 1), 
-            'max': round(result['episode_reward_max'], 1), 
+            'min': round(result['episode_reward_min'], 1),
+            'mean': round(result['episode_reward_mean'], 1),
+            'max': round(result['episode_reward_max'], 1),
         }
         episodes.append(episode)
         Log.info(f"Episode {n} -> {episode}.")
@@ -155,7 +155,7 @@ def train(agent: BaseAgent, episode_length: int = 1) -> BaseAgent:
         if n % save_frequency == 0 or n == 1:
             agent.save()
             Log.info(f"Saving episode {n}.")
-    
+
     # Save last model if not saved already
     if episode_length % 10 != 0:
         agent.save()
@@ -168,6 +168,7 @@ def train(agent: BaseAgent, episode_length: int = 1) -> BaseAgent:
     # Shutting down Ray
     Log.info("Closing Ray...")
     ray.shutdown()
+
 
 def main(args: dict) -> None:
     '''

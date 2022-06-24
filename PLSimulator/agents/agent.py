@@ -50,7 +50,7 @@ class BaseAgent:
             Returns
                 Result: Metrics from training
         '''
-    
+
     @abstractmethod
     def step(self, state: list) -> list:
         '''
@@ -74,7 +74,7 @@ class BaseAgent:
             Returns
                 None
         '''
-    
+
     @abstractmethod
     def load(self) -> None:
         '''
@@ -112,7 +112,7 @@ class BaseAgent:
 
             Parameters:
                 episode_data: The data from the training run
-            
+
             Returns:
                 None
         '''
