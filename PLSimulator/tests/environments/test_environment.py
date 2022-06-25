@@ -9,15 +9,13 @@ from PLSimulator.environments.environment import BaseEnvironment
 @pytest.mark.parametrize("config", [
     (
         {
-            'test': {
-                'name': 'test-v0',
-                'gravity': 1.0,
-                'density': 2.0,
-                'max_fuel': 3.0,
-                'bg_colour': (4, 5, 6),
-                'width': 7,
-                'height': 8
-            }
+            'name': 'test-v0',
+            'gravity': 1.0,
+            'density': 2.0,
+            'max_fuel': 3.0,
+            'bg_colour': (4, 5, 6),
+            'width': 7,
+            'height': 8
         }
     )
 ])
