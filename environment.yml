@@ -30,6 +30,7 @@ dependencies:
   - setuptools
   - redis
   - matplotlib
+  - shapely
   - pip:
     - pygame==2.1.2
     - ray[rllib]
