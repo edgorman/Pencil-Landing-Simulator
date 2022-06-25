@@ -12,7 +12,7 @@ class Pencil(BaseEntity):
 
     def __init__(self):
         super().__init__(
-            'pencil.png', 
+            'pencil.png',
             Vector2(16, 128),
             Vector2(312, 64),
             Vector2(0, 0),
@@ -32,14 +32,14 @@ class Pencil(BaseEntity):
         self.dry_mass = self.mass
         self.start_fuel, self.fuel_mass = 20, 20
         self.mass = self.dry_mass + self.fuel_mass
-    
+
     def fire_engine(self):
         if self.fuel_mass > 0:
             self.fuel_mass -= 0.1
             self.mass = self.dry_mass + self.fuel_mass
             return True
         return False
-    
+
     def update_entities(self, action):
         for i in range(len(action)):
             self.entities[i].isRenderable = action[i] != 0
@@ -59,6 +59,7 @@ class Engine(BaseEntity):
             False
         )
 
+
 class RCS(BaseEntity):
     def __init__(self, flip_x: bool):
         asset_size = Vector2(-16, 16) if flip_x else Vector2(16, 16)
@@ -74,6 +75,7 @@ class RCS(BaseEntity):
             False,
             False
         )
+
 
 class Leg(BaseEntity):
     def __init__(self, flip_x: bool):

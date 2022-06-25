@@ -21,20 +21,20 @@ class PPOAgent(BaseAgent):
         config["sgd_minibatch_size"] = 250
         config["env_config"] = env_config
         self.model = ppo.PPOTrainer(config, env_config["name"])
-    
+
     def train(self):
         return self.model.train()
-    
+
     def step(self, state: list) -> list:
         return self.model.compute_single_action(state)
 
     def save(self):
         self.model.save(self._model_dir)
-    
+
     def load(self, number):
         if number == 'last':
             number = max([int(c[11:]) for c in os.listdir(self._model_dir) if c.startswith("checkpoint")])
-        
+
         self.model.restore(
             os.path.join(
                 self._model_dir,

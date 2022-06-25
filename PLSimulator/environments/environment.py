@@ -51,7 +51,7 @@ class BaseEnvironment(gym.Env):
             np.array([1, 1, 1], dtype=np.float32),
             dtype=np.float32
         )
-        self.observation_space = Box( 
+        self.observation_space = Box(
             np.array([-1, -1, -1, -1, -1], dtype=np.float32),
             np.array([1, 1, 1, 1, 1], dtype=np.float32),
             dtype=np.float32
@@ -145,28 +145,28 @@ class BaseEnvironment(gym.Env):
                self.pencil.entities[4] in c and self.entities["ground"] in c:
                 info["crashed"] = True
                 break
-            
+
             # Detect if both legs are touching the landing pad
             if self.pencil.entities[3] in c and self.entities["landingPad"] in c:
                 info["legs_on_pad"] += 1
             if self.pencil.entities[4] in c and self.entities["landingPad"] in c:
                 info["legs_on_pad"] += 1
-        
+
         # Check if both landing legs are on pad
         if not info["crashed"] and info["legs_on_pad"] == 2:
             # Check the pencil velocity and angle are within bounds
             velCondition = abs(self.entities["landingPad"].velocity.magnitude() - self.pencil.velocity.magnitude()) < 2
             angCondition = abs(self.entities["landingPad"].angle - self.pencil.angle) < 5
-            
+
             # Update landed and crashed states
             info["landed"] = velCondition and angCondition
             info["crashed"] = not info["landed"]
         info["land_velocity"] = round(abs((self.entities["landingPad"].velocity - self.pencil.velocity).magnitude()), 1)
-        
+
         # Check if pencil is within bounds of screen
         if self.pencil.position[0] < 0 or self.pencil.position[0] > self._window_width or self.pencil.position[1] < 0:
             info["crashed"] = True
-    
+
     def step_physics(self, action: list):
         # Check if agent has enough fuel to fire engine
         if action[0] > 0 and not self.pencil.fire_engine():
@@ -186,7 +186,7 @@ class BaseEnvironment(gym.Env):
         # TODO: drag coeff should be relative to angle of pencil (e.g. larger when horizontal)
         drag = 0.5 * 0.82 * 1 * self._density * Vector2(self.pencil.velocity[0]**2, self.pencil.velocity[1]**2)
         drag = self._force_scale * drag.rotate(180)
-        
+
         # Update pencils position under external and internal forces
         self.pencil.update_position(gravity + drag)
         self.pencil.update_position(thrust, heading)
@@ -213,7 +213,7 @@ class BaseEnvironment(gym.Env):
             reward += 1000 + info["fuel_left"] * 10
         if info["crashed"]:
             reward -= 1000
-        
+
         return round(reward, 1)
 
     def render(self) -> None:
