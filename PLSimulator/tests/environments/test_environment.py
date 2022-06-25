@@ -25,8 +25,6 @@ def test_init(config):
     x = BaseEnvironment(config)
 
     assert all([e in x.entities for e in ['pencil', 'ground', 'landingPad']])
-    assert type(x.entities['pencil']) == Pencil
-    assert type(x.entities['ground']) == Ground
-    assert type(x.entities['landingPad']) == LandingPad
-
-
+    assert isinstance(x.entities['pencil'], Pencil)
+    assert isinstance(x.entities['ground'], Ground)
+    assert isinstance(x.entities['landingPad'], LandingPad)
