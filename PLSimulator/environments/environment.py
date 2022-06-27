@@ -195,24 +195,30 @@ class BaseEnvironment(gym.Env):
         # Reward agent for conserving fuel
         reward = 0
 
-        # Reward agent for moving closer to goal
-        distance = self.entities["landingPad"].position - self.pencil.position
-        magnitude = self.entities["landingPad"].position.magnitude() - distance.magnitude()
-        reward += (magnitude * 10) / self.entities["landingPad"].position.magnitude()
-
-        # Reward agent for staying perpendicular to goal
-        offset = abs(self.pencil.angle - self.entities["landingPad"].angle)
-        reward += 5 if offset < 5 else offset * -1
-
-        # Reward agent for having low velocity close to goal
-        if abs(self.entities["landingPad"].velocity.magnitude() - self.pencil.velocity.magnitude()) < 2:
-            reward += 10
-
+        # Calculate distance/velocity/acceleration of pencil relative to landing pad
+        distance = (self.entities["landingPad"].position - self.pencil.position) / self.entities["landingPad"].position.magnitude()
+        velocity = (self.entities["landingPad"].velocity - self.pencil.velocity)
+        acceleration = (self.entities["landingPad"].acceleration - self.pencil.acceleration)
+        moving = np.sign(distance[0]) != np.sign(velocity[0]) and np.sign(distance[0]) != np.sign(velocity[1])
+        slowing = not (np.sign(distance[0]) != np.sign(acceleration[0]) and np.sign(distance[1]) != np.sign(acceleration[1]))
+        
+        magnitude = -distance.magnitude() - velocity.magnitude()
+        if moving:
+            if slowing:
+                if distance.magnitude() > 0.5:
+                    reward += 2.0 * magnitude
+                else:
+                    reward += 3.0 + magnitude
+            else:
+                reward += 0.5 + magnitude
+        else:
+            reward += 2.0 * magnitude
+        
         # Reward agent for successful landing vs crash landing
         if info["landed"]:
-            reward += 1000 + info["fuel_left"] * 10
+            reward += 100
         if info["crashed"]:
-            reward -= 1000
+            reward -= 100
 
         return round(reward, 1)
 
