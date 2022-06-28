@@ -22,7 +22,6 @@ from PLSimulator.environments.environment import BaseEnvironment
 def test_init(config):
     x = BaseEnvironment(config)
 
-    assert all([e in x.entities for e in ['pencil', 'ground', 'landingPad']])
-    assert isinstance(x.entities['pencil'], Pencil)
-    assert isinstance(x.entities['ground'], Ground)
-    assert isinstance(x.entities['landingPad'], LandingPad)
+    assert isinstance(x.pencil, Pencil)
+    assert isinstance(x.ground, Ground)
+    assert isinstance(x.pad, LandingPad)
