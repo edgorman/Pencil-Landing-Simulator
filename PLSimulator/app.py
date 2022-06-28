@@ -76,7 +76,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
             environment.clock.tick(fps)
         Log.info(f"State: {state}, Action: {action}, Reward: {reward}, Done: {done}, Info: {info}.")
     Log.info(f"Total reward: {rewards}.")
-    Log.success("Agent has finished the simulation.")
+    Log.success("User has finished the simulation.")
 
 
 def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> None:

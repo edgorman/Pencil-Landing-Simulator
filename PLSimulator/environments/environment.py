@@ -32,12 +32,14 @@ class BaseEnvironment(gym.Env):
                 None
         '''
         # Set up entities
-        self.entities = {
-            'pencil': Pencil(),
-            'ground': Ground(),
-            'landingPad': LandingPad()
-        }
-        self.pencil = self.entities["pencil"]
+        self.pencil = Pencil()
+        self.ground = Ground()
+        self.pad = LandingPad()
+        self.entities = [
+            self.pencil,
+            self.ground,
+            self.pad
+        ]
 
         # Set up forces
         self._rotation_scale = 0.1
@@ -92,11 +94,11 @@ class BaseEnvironment(gym.Env):
         '''
         return np.clip(
             np.array([
-                round((self.entities["landingPad"].position - self.pencil.position)[0] / self._window_width, 1),
-                round((self.entities["landingPad"].position - self.pencil.position)[1] / self._window_height, 1),
-                round((self.entities["landingPad"].velocity - self.pencil.velocity)[0] / 100, 1),
-                round((self.entities["landingPad"].velocity - self.pencil.velocity)[1] / 100, 1),
-                round((self.entities["landingPad"].angle - self.pencil.angle) / 90, 1)
+                round((self.pad.position - self.pencil.position)[0] / self._window_width, 1),
+                round((self.pad.position - self.pencil.position)[1] / self._window_height, 1),
+                round((self.pad.velocity - self.pencil.velocity)[0] / 100, 1),
+                round((self.pad.velocity - self.pencil.velocity)[1] / 100, 1),
+                round((self.pad.angle - self.pencil.angle) / 90, 1)
             ], dtype=np.float32),
             -1,
             1
@@ -132,36 +134,36 @@ class BaseEnvironment(gym.Env):
     def step_collisions(self, info: dict):
         # Collect collisions between pencil and other entities
         collisions = []
-        for entity in self.entities.values():
+        for entity in self.entities:
             collisions.extend(self.pencil.collides_with(entity))
         collisions = set(collisions)
 
         # For each collision, check for crash/landing cases
         for c in collisions:
             # Detect if pencil is touching ground or landing pad
-            if self.pencil in c and self.entities["ground"] in c or \
-               self.pencil in c and self.entities["landingPad"] in c or \
-               self.pencil.entities[3] in c and self.entities["ground"] in c or \
-               self.pencil.entities[4] in c and self.entities["ground"] in c:
+            if self.pencil in c and self.ground in c or \
+               self.pencil in c and self.pad in c or \
+               self.pencil.entities[3] in c and self.ground in c or \
+               self.pencil.entities[4] in c and self.ground in c:
                 info["crashed"] = True
                 break
 
             # Detect if both legs are touching the landing pad
-            if self.pencil.entities[3] in c and self.entities["landingPad"] in c:
+            if self.pencil.entities[3] in c and self.pad in c:
                 info["legs_on_pad"] += 1
-            if self.pencil.entities[4] in c and self.entities["landingPad"] in c:
+            if self.pencil.entities[4] in c and self.pad in c:
                 info["legs_on_pad"] += 1
 
         # Check if both landing legs are on pad
         if not info["crashed"] and info["legs_on_pad"] == 2:
             # Check the pencil velocity and angle are within bounds
-            velCondition = abs(self.entities["landingPad"].velocity.magnitude() - self.pencil.velocity.magnitude()) < 2
-            angCondition = abs(self.entities["landingPad"].angle - self.pencil.angle) < 5
+            velCondition = abs(self.pad.velocity.magnitude() - self.pencil.velocity.magnitude()) < 2
+            angCondition = abs(self.pad.angle - self.pencil.angle) < 5
 
             # Update landed and crashed states
             info["landed"] = velCondition and angCondition
             info["crashed"] = not info["landed"]
-        info["land_velocity"] = round(abs((self.entities["landingPad"].velocity - self.pencil.velocity).magnitude()), 1)
+        info["land_velocity"] = round(abs((self.pad.velocity - self.pencil.velocity).magnitude()) / 100, 1)
 
         # Check if pencil is within bounds of screen
         if self.pencil.position[0] < 0 or self.pencil.position[0] > self._window_width or self.pencil.position[1] < 0:
@@ -196,9 +198,9 @@ class BaseEnvironment(gym.Env):
         reward = 0
 
         # Calculate distance/velocity/acceleration of pencil relative to landing pad
-        distance = (self.entities["landingPad"].position - self.pencil.position) / self.entities["landingPad"].position.magnitude()
-        velocity = (self.entities["landingPad"].velocity - self.pencil.velocity)
-        acceleration = (self.entities["landingPad"].acceleration - self.pencil.acceleration)
+        distance = (self.pad.position - self.pencil.position) / self.pad.position.magnitude()
+        velocity = (self.pad.velocity - self.pencil.velocity)
+        acceleration = (self.pad.acceleration - self.pencil.acceleration)
 
         # Determine if pencil is moving/slowing towards landing pad
         moving = np.sign(distance[0]) != np.sign(velocity[0]) and np.sign(distance[0]) != np.sign(velocity[1])
@@ -247,7 +249,7 @@ class BaseEnvironment(gym.Env):
         self.window.fill(self._window_bg_colour)
 
         # For each entity, render if renderable
-        for entity in self.entities.values():
+        for entity in self.entities:
             if entity.isRenderable:
                 images = entity.render(entity.position)
 
