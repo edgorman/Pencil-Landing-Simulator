@@ -47,9 +47,9 @@ class BaseEnvironment(gym.Env):
 
         # Set up environment
         self.action_space = Box(
-            np.array([0, 0, 0], dtype=np.float32),
-            np.array([1, 1, 1], dtype=np.float32),
-            dtype=np.float32
+            np.array([0, 0, 0], dtype=np.int),
+            np.array([1, 1, 1], dtype=np.int),
+            dtype=np.int
         )
         self.observation_space = Box(
             np.array([-1, -1, -1, -1, -1], dtype=np.float32),
@@ -199,20 +199,20 @@ class BaseEnvironment(gym.Env):
         distance = (self.entities["landingPad"].position - self.pencil.position) / self.entities["landingPad"].position.magnitude()
         velocity = (self.entities["landingPad"].velocity - self.pencil.velocity)
         acceleration = (self.entities["landingPad"].acceleration - self.pencil.acceleration)
+
+        # Determine if pencil is moving/slowing towards landing pad
         moving = np.sign(distance[0]) != np.sign(velocity[0]) and np.sign(distance[0]) != np.sign(velocity[1])
         slowing = not (np.sign(distance[0]) != np.sign(acceleration[0]) and np.sign(distance[1]) != np.sign(acceleration[1]))
-        
-        magnitude = -distance.magnitude() - velocity.magnitude()
-        if moving:
-            if slowing:
-                if distance.magnitude() > 0.5:
-                    reward += 2.0 * magnitude
-                else:
-                    reward += 3.0 + magnitude
-            else:
-                reward += 0.5 + magnitude
+
+        # Reward if pencil is not firing engine far from landing pad
+        if abs(acceleration.magnitude()) <= 0 and distance.magnitude() > 0.5:
+            reward += 2
+        # Reward if pencil is moving and slowing towards landing pad
+        elif moving and slowing or distance.magnitude() < 0.5 and velocity.magnitude() <= 2.0:
+            reward += 8 * (0.5 - distance.magnitude()) * math.cos(math.radians(self.pencil.angle))
+        # Otherwise negatively reward pencil 
         else:
-            reward += 2.0 * magnitude
+            reward -= 8
         
         # Reward agent for successful landing vs crash landing
         if info["landed"]:
