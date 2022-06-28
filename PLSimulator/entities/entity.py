@@ -44,6 +44,7 @@ class BaseEntity:
         self._asset_name = asset_name
         self._asset_size = asset_size
         self.position = position
+        self.acceleration = Vector2(0, 0)
         self.velocity = velocity
         self.angle = angle
         self.mass = mass + sum([e.mass for e in entities])
@@ -68,10 +69,10 @@ class BaseEntity:
                 None
         '''
         # Calculate acceleration: A = F/M
-        acceleration = force / self.mass
+        self.acceleration = force / self.mass
 
         # Update velocity
-        self.velocity += acceleration
+        self.velocity += self.acceleration
 
         # Update position
         self.position += self.velocity

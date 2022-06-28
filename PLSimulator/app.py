@@ -28,6 +28,7 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
     '''
     # Set up environment
     done, quit = False, False
+    rewards = 0
     environment.reset()
     environment.render()
     Log.info("User has started the simulation.")
@@ -67,13 +68,15 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
 
         # Update the environment with the action
         state, reward, done, info = environment.step(action)
+        rewards += reward
 
         # Render environment at N fps
         if fps > 0:
             environment.render()
             environment.clock.tick(fps)
         Log.info(f"State: {state}, Action: {action}, Reward: {reward}, Done: {done}, Info: {info}.")
-    Log.success("Agent has finished the simulation.")
+    Log.info(f"Total reward: {rewards}.")
+    Log.success("User has finished the simulation.")
 
 
 def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> None:
@@ -90,6 +93,7 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
     '''
     # Set up environment
     done = False
+    rewards = 0
     environment.reset()
     environment.render()
     Log.info("Agent has started the simulation.")
@@ -104,12 +108,14 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
 
         # Update the environment with the action
         state, reward, done, info = environment.step(action)
+        rewards += reward
 
         # Render environment at N fps
         if fps > 0:
             environment.render()
             environment.clock.tick(fps)
         Log.info(f"State: {state}, Action: {action}, Reward: {reward}, Done: {done}, Info: {info}.")
+    Log.info(f"Total reward: {rewards}.")
     Log.success("Agent has finished the simulation.")
 
 
@@ -198,7 +204,7 @@ def main(args: dict) -> None:
 
         if args.load == "":
             Log.info("Train RL agent.")
-            train(agent, episode_length=31)
+            train(agent, episode_length=100)
             Log.success("Finished training RL agent.")
         else:
             Log.info("Load RL agent.")
