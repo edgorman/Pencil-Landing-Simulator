@@ -96,9 +96,9 @@ class BaseEnvironment(gym.Env):
             np.array([
                 round((self.pad.position - self.pencil.position)[0] / self._window_width, 1),
                 round((self.pad.position - self.pencil.position)[1] / self._window_height, 1),
-                round((self.pad.velocity - self.pencil.velocity)[0] / 100, 1),
-                round((self.pad.velocity - self.pencil.velocity)[1] / 100, 1),
-                round((self.pad.angle - self.pencil.angle) / 90, 1)
+                round((self.pad.velocity - self.pencil.velocity)[0], 1),
+                round((self.pad.velocity - self.pencil.velocity)[1], 1),
+                round((self.pad.angle - self.pencil.angle) / 45, 1)
             ], dtype=np.float32),
             -1,
             1
@@ -117,19 +117,22 @@ class BaseEnvironment(gym.Env):
                 done: Whether the environment is done
                 info: Any extra information about environment
         '''
+        state = self.state()
+
         info = {
-            "landed": False,
-            "crashed": False,
-            "fuel_left": round(self.pencil.fuel_mass, 1),
-            "legs_on_pad": 0,
-            "land_velocity": 0
+            "outcome": "none",
+            "pos": Vector2(state[0], state[1]),
+            "vel": Vector2(state[2], state[3]),
+            "ang": round(state[4], 1),
+            "fuel": round(self.pencil.fuel_mass, 1),
+            "legs": 0,
         }
 
         self.step_collisions(info)
         self.step_physics(action)
-        reward = self.step_rewards(info)
+        reward, done = self.step_rewards(info)
 
-        return self.state(), reward, info["landed"] or info["crashed"], info
+        return state, reward, done, info
 
     def step_collisions(self, info: dict):
         # Collect collisions between pencil and other entities
@@ -145,29 +148,27 @@ class BaseEnvironment(gym.Env):
                self.pencil in c and self.pad in c or \
                self.pencil.entities[3] in c and self.ground in c or \
                self.pencil.entities[4] in c and self.ground in c:
-                info["crashed"] = True
+                info["outcome"] = "failed"
                 break
 
             # Detect if both legs are touching the landing pad
             if self.pencil.entities[3] in c and self.pad in c:
-                info["legs_on_pad"] += 1
+                info["legs"] += 1
             if self.pencil.entities[4] in c and self.pad in c:
-                info["legs_on_pad"] += 1
+                info["legs"] += 1
 
         # Check if both landing legs are on pad
-        if not info["crashed"] and info["legs_on_pad"] == 2:
+        if not info["outcome"] == "failed" and info["legs"] == 2:
             # Check the pencil velocity and angle are within bounds
             velCondition = abs(self.pad.velocity.magnitude() - self.pencil.velocity.magnitude()) < 2
             angCondition = abs(self.pad.angle - self.pencil.angle) < 5
 
             # Update landed and crashed states
-            info["landed"] = velCondition and angCondition
-            info["crashed"] = not info["landed"]
-        info["land_velocity"] = round(abs((self.pad.velocity - self.pencil.velocity).magnitude()) / 100, 1)
+            info["outcome"] = "success" if velCondition and angCondition else "failed"
 
         # Check if pencil is within bounds of screen
         if self.pencil.position[0] < 0 or self.pencil.position[0] > self._window_width or self.pencil.position[1] < 0:
-            info["crashed"] = True
+            info["outcome"] = "failed"
 
     def step_physics(self, action: list):
         # Check if agent has enough fuel to fire engine
@@ -217,12 +218,12 @@ class BaseEnvironment(gym.Env):
             reward -= 8
         
         # Reward agent for successful landing vs crash landing
-        if info["landed"]:
+        if info["outcome"] == "success":
             reward += 100
-        if info["crashed"]:
+        if info["outcome"] == "failed":
             reward -= 100
 
-        return round(reward, 1)
+        return round(reward, 1), info["outcome"] in ["success", "failed"]
 
     def render(self) -> None:
         '''
