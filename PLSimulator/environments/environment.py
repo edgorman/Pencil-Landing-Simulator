@@ -1,7 +1,9 @@
 import os
+import io
 import gym
 import math
 import pygame
+import imageio
 import numpy as np
 from gym.spaces import Box
 from pygame import Vector2
@@ -58,11 +60,13 @@ class BaseEnvironment(gym.Env):
             np.array([1, 1, 1, 1, 1], dtype=np.float32),
             dtype=np.float32
         )
+        self.total_reward = 0
 
         # Set up window
         self._window_width = config["width"]
         self._window_height = config["height"]
         self._window_bg_colour = config["bg_colour"]
+        self._window_frames = []
         self.window = None
 
     def reset(self) -> list:
@@ -79,6 +83,8 @@ class BaseEnvironment(gym.Env):
         self.pencil.velocity = Vector2(0, 0)
         self.pencil.angle = 0
         self.pencil.fuel_mass = self.pencil.start_fuel
+
+        self.total_reward = 0
 
         return self.state()
 
@@ -131,6 +137,7 @@ class BaseEnvironment(gym.Env):
         self.step_collisions(info)
         self.step_physics(action)
         reward, done = self.step_rewards(info)
+        self.total_reward += reward
 
         return state, reward, done, info
 
@@ -227,12 +234,12 @@ class BaseEnvironment(gym.Env):
 
         return round(reward, 1), info["outcome"] in ["success", "failed"]
 
-    def render(self) -> None:
+    def render(self, save_video: bool = False) -> None:
         '''
             Render the entities to window
 
             Paramters:
-                None
+                save_video: Whether to save simulation as a video
 
             Returns:
                 None
@@ -261,3 +268,22 @@ class BaseEnvironment(gym.Env):
                     self.window.blit(image, position)
 
         pygame.display.update()
+
+        # Save this frame in list
+        if save_video:
+            frame = io.BytesIO()
+            pygame.image.save(self.window, frame, "PNG")
+            self._window_frames.append(imageio.imread(frame))
+
+    def save_video(self, dir: str = '', fps: int = 30):
+        '''
+            Save the window frames collection as a gif
+
+            Parameters:
+                dir: The directory to store the gif in
+                fps: Frames per second for the gif
+
+            Returns:
+                None
+        '''
+        imageio.mimsave(os.path.join(dir, "simulation.gif"), self._window_frames, 'GIF', duration=1 / fps)
