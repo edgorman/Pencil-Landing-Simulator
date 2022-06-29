@@ -5,7 +5,7 @@ from ray.tune.registry import register_env
 from PLSimulator.log import Log
 from PLSimulator.agents.agent import BaseAgent
 from PLSimulator.agents.ppo import PPOAgent
-from PLSimulator.constants import ENV_CONFIG
+from PLSimulator.constants import ENV_CONFIG, MODEL_DATA_DIRECTORY
 from PLSimulator.environments.environment import BaseEnvironment
 
 
@@ -15,7 +15,7 @@ AGENT_OBJCECTS_DICT = {
 }
 
 
-def manual(environment: BaseEnvironment, fps: int = 30) -> None:
+def manual(environment: BaseEnvironment, fps: int = 30, save_video: bool = False) -> None:
     '''
         Let the user control the landing in the environment given
 
@@ -26,27 +26,23 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
         Returns:
             None
     '''
-    # Set up environment
+    state = environment.reset()
     done, quit = False, False
-    rewards = 0
-    environment.reset()
-    environment.render()
-    Log.info("User has started the simulation.")
 
-    # Store which keys have been pressed down or up
     action = [0, 0, 0]
     keys = [False, False, False]
 
-    # Iterate until environment has finished
+    # Render environment once so pygame events can be collected
+    environment.render()
+
+    Log.info("User has started the simulation.")
     while not done and not quit:
         # Process pygame events
         events = pygame.event.get()
         for event in events:
-            # Check for manual exit
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 quit = True
 
-            # Check for key presses
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     keys[0] = True
@@ -68,18 +64,24 @@ def manual(environment: BaseEnvironment, fps: int = 30) -> None:
 
         # Update the environment with the action
         state, reward, done, info = environment.step(action)
-        rewards += reward
 
         # Render environment at N fps
         if fps > 0:
-            environment.render()
+            environment.render(save_video=save_video)
             environment.clock.tick(fps)
+
         Log.info(f"State: {state}, Action: {action}, Reward: {reward}, Done: {done}, Info: {info}.")
-    Log.info(f"Total reward: {rewards}.")
+    Log.info(f"Total reward: {environment.total_reward}.")
+
+    # Save frames as a video
+    if save_video:
+        Log.info(f"Saving simulation as gif in '{MODEL_DATA_DIRECTORY}'.")
+        environment.save_video(MODEL_DATA_DIRECTORY, fps)
+
     Log.success("User has finished the simulation.")
 
 
-def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> None:
+def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30, save_video: bool = False) -> None:
     '''
         Let the agent control the landing in the environment given
 
@@ -87,35 +89,39 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30) -> N
             agent: The agent to put in the environment
             environment: The environment to run the game in
             fps: Frame rate for rendering the environment
+            save_video: Whether to save simulation as a video
 
         Returns:
             None
     '''
-    # Set up environment
+    state = environment.reset()
     done = False
-    rewards = 0
-    environment.reset()
-    environment.render()
+
+    # Render environment once to create window
+    if fps > 0:
+        environment.render()
+
     Log.info("Agent has started the simulation.")
-
-    # Iterate until environment has finished
     while not done:
-        # Step through environment once
-        state = environment.state()
-
-        # Get action of the agent
+        # Receive action from agent
         action = agent.step(state)
 
         # Update the environment with the action
         state, reward, done, info = environment.step(action)
-        rewards += reward
 
         # Render environment at N fps
         if fps > 0:
-            environment.render()
+            environment.render(save_video=save_video)
             environment.clock.tick(fps)
+
         Log.info(f"State: {state}, Action: {action}, Reward: {reward}, Done: {done}, Info: {info}.")
-    Log.info(f"Total reward: {rewards}.")
+    Log.info(f"Total reward: {environment.total_reward}.")
+
+    # Save frames as a video
+    if save_video:
+        Log.info(f"Saving simulation as gif in '{agent._model_dir}'.")
+        environment.save_video(agent._model_dir, fps)
+
     Log.success("Agent has finished the simulation.")
 
 
@@ -192,7 +198,7 @@ def main(args: dict) -> None:
 
     if args.agent == 'manual':
         Log.info("Rendering the environment in manual mode.")
-        manual(environment(env_config))
+        manual(environment(env_config), save_video=args.save)
     else:
         Log.info("Registering RL environment.")
         register_env(env_config["name"], lambda config: environment(config))
@@ -215,6 +221,6 @@ def main(args: dict) -> None:
             Log.success("Finished loading RL agent.")
 
         Log.info("Rendering the environment in agent mode.")
-        simulate(agent, environment(env_config))
+        simulate(agent, environment(env_config), save_video=args.save)
 
     Log.info("Exiting application.")

@@ -25,6 +25,7 @@ if __name__ == '__main__':
     parser.add_argument('-env', choices=env_choices, help="choose the environment", default='earth')
     parser.add_argument('-agent', choices=agent_choices, help="choose the agent", default='manual')
     parser.add_argument('-load', action='store', dest='load', help="load model checkpoint (n or latest)", default="")
+    parser.add_argument('-save_video', action='store_true', dest='save', help="store run as a gif", default=False)
     parser.add_argument('-verbose', action='store_true', dest='verbose', help="show extra output", default=False)
     parser.add_argument('-version', action='version', version='%(prog)s@dev')
 
