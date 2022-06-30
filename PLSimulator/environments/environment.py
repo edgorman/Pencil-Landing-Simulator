@@ -3,6 +3,7 @@ import io
 import gym
 import math
 import pygame
+import random
 import imageio
 import numpy as np
 from gym.spaces import Box
@@ -15,11 +16,11 @@ from PLSimulator.entities.static import Ground
 from PLSimulator.entities.static import LandingPad
 
 
-class BaseEnvironment(gym.Env):
+class Environment(gym.Env):
     '''
-        BaseEnvironment
+        Environment
 
-        This is the environment class from which all other environments will inherit.
+        This is the environment class for the pencil landing simulation.
         It inherits from the gym environment class.
     '''
 
@@ -46,8 +47,10 @@ class BaseEnvironment(gym.Env):
         # Set up forces
         self._rotation_scale = 0.1
         self._force_scale = 0.35
-        self._gravity = config["gravity"]
-        self._density = config["density"]
+        self._gravity = config["physics"]["gravity"]
+        self._density = config["physics"]["density"]
+        self._land_ang = config["physics"]["land_ang"]
+        self._land_vel = config["physics"]["land_vel"]
 
         # Set up environment
         self.action_space = Box(
@@ -61,11 +64,19 @@ class BaseEnvironment(gym.Env):
             dtype=np.float32
         )
         self.total_reward = 0
+        self._min_fuel = config["agent"]["min_fuel"]
+        self._max_fuel = config["agent"]["max_fuel"]
+        self._min_pos = config["agent"]["min_pos"]
+        self._max_pos = config["agent"]["max_pos"]
+        self._min_ang = config["agent"]["min_ang"]
+        self._max_ang = config["agent"]["max_ang"]
+        self._min_vel = config["agent"]["min_vel"]
+        self._max_vel = config["agent"]["max_vel"]
 
         # Set up window
-        self._window_width = config["width"]
-        self._window_height = config["height"]
-        self._window_bg_colour = config["bg_colour"]
+        self._window_width = config["window"]["width"]
+        self._window_height = config["window"]["height"]
+        self._window_bg_colour = config["window"]["colour"]
         self._window_frames = []
         self.window = None
 
@@ -79,11 +90,16 @@ class BaseEnvironment(gym.Env):
             Returns:
                 state: Starting state of environment
         '''
-        self.pencil.position = Vector2(312, 64)
-        self.pencil.velocity = Vector2(0, 0)
-        self.pencil.angle = 0
-        self.pencil.fuel_mass = self.pencil.start_fuel
-
+        self.pencil.position = Vector2(
+            random.uniform(self._min_pos[0] * self._window_width, self._max_pos[0] * self._window_width),
+            random.uniform(self._min_pos[1] * self._window_width, self._max_pos[1] * self._window_width),
+        )
+        self.pencil.velocity = Vector2(
+            random.uniform(self._min_vel[0] * self._window_width, self._max_vel[0] * self._window_width),
+            random.uniform(self._min_vel[1] * self._window_width, self._max_vel[1] * self._window_width),
+        )
+        self.pencil.angle = random.uniform(self._min_ang, self._max_ang)
+        self.pencil.fuel_mass = random.uniform(self._min_fuel, self._max_fuel)
         self.total_reward = 0
 
         return self.state()
@@ -167,8 +183,8 @@ class BaseEnvironment(gym.Env):
         # Check if both landing legs are on pad
         if not info["outcome"] == "failed" and info["legs"] == 2:
             # Check the pencil velocity and angle are within bounds
-            velCondition = abs(self.pad.velocity.magnitude() - self.pencil.velocity.magnitude()) < 2
-            angCondition = abs(self.pad.angle - self.pencil.angle) < 5
+            velCondition = abs(self.pad.velocity.magnitude() - self.pencil.velocity.magnitude()) < self._land_vel
+            angCondition = abs(self.pad.angle - self.pencil.angle) < self._land_ang
 
             # Update landed and crashed states
             info["outcome"] = "success" if velCondition and angCondition else "failed"
@@ -192,10 +208,15 @@ class BaseEnvironment(gym.Env):
         # Move pencil under the forces of its thrust, gravity and drag:
         thrust = thrust * Vector2(math.sin(math.radians(heading)), math.cos(math.radians(heading)))
         gravity = self._force_scale * Vector2(0, self._gravity)
+
         # drag is calculated using: Fd = 0.5 * Cd * A * p * V^2
-        # TODO: drag coeff should be relative to angle of pencil (e.g. larger when horizontal)
-        drag = 0.5 * 0.82 * 1 * self._density * Vector2(self.pencil.velocity[0]**2, self.pencil.velocity[1]**2)
-        drag = self._force_scale * drag.rotate(180)
+        cd = 0.5 * math.sin(math.radians(heading)) + 0.5
+        drag = 0.5 * cd * 1 * self._density * Vector2(self.pencil.velocity[0]**2, self.pencil.velocity[1]**2)
+        if self.pencil.velocity[0] > 0:
+            drag[0] *= -1
+        if self.pencil.velocity[1] > 0:
+            drag[1] *= -1
+        drag = self._force_scale * drag
 
         # Update pencils position under external and internal forces
         self.pencil.update_position(gravity + drag)
@@ -220,7 +241,7 @@ class BaseEnvironment(gym.Env):
         if abs(acceleration.magnitude()) <= 0 and distance.magnitude() > 0.5:
             reward += 2
         # Reward if pencil is moving and slowing towards landing pad
-        elif moving and slowing or distance.magnitude() < 0.5 and velocity.magnitude() <= 2.0:
+        elif moving and slowing or distance.magnitude() < 0.5 and velocity.magnitude() <= self._land_vel:
             reward += 8 * (0.5 - distance.magnitude()) * math.cos(math.radians(self.pencil.angle))
         # Otherwise negatively reward pencil
         else:
@@ -228,7 +249,7 @@ class BaseEnvironment(gym.Env):
 
         # Reward agent for successful landing vs crash landing
         if info["outcome"] == "success":
-            reward += 100
+            reward += 100 + self.pencil.fuel_mass * 10
         if info["outcome"] == "failed":
             reward -= 100
 

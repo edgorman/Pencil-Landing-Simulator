@@ -6,9 +6,9 @@ from shapely.geometry import Polygon
 from PLSimulator.constants import ASSET_DATA_DIRECTORY
 
 
-class BaseEntity:
+class Entity:
     '''
-        BaseEntity
+        Entity
 
         This is the entity class from which all other entities will inherit.
     '''
@@ -21,7 +21,7 @@ class BaseEntity:
             velocity: Vector2 = Vector2(0, 0),
             angle: float = 0,
             mass: float = 1,
-            entities: "list[BaseEntity]" = [],
+            entities: "list[Entity]" = [],
             isRenderable: bool = True,
             isCollidable: bool = True) -> None:
         '''
@@ -142,9 +142,9 @@ class BaseEntity:
 
         return polygons
 
-    def collides_with(self, other: "BaseEntity") -> bool:
+    def collides_with(self, other: "Entity") -> bool:
         '''
-            Check whether other BaseEntity collides with this BaseEntity
+            Check whether other Entity collides with this Entity
 
             Parameters:
                 other: Other base entity to consider

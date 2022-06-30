@@ -3,19 +3,19 @@ import pygame
 from ray.tune.registry import register_env
 
 from PLSimulator.log import Log
-from PLSimulator.agents.agent import BaseAgent
+from PLSimulator.agents.agent import Agent
 from PLSimulator.agents.ppo import PPOAgent
 from PLSimulator.constants import ENV_CONFIG, MODEL_DATA_DIRECTORY
-from PLSimulator.environments.environment import BaseEnvironment
+from PLSimulator.environments.environment import Environment
 
 
 AGENT_OBJCECTS_DICT = {
-    'manual': BaseAgent,
+    'manual': Agent,
     'ppo': PPOAgent,
 }
 
 
-def manual(environment: BaseEnvironment, fps: int = 30, save_video: bool = False) -> None:
+def manual(environment: Environment, fps: int = 30, save_video: bool = False) -> None:
     '''
         Let the user control the landing in the environment given
 
@@ -81,7 +81,7 @@ def manual(environment: BaseEnvironment, fps: int = 30, save_video: bool = False
     Log.success("User has finished the simulation.")
 
 
-def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30, save_video: bool = False) -> None:
+def simulate(agent: Agent, environment: Environment, fps: int = 30, save_video: bool = False) -> None:
     '''
         Let the agent control the landing in the environment given
 
@@ -125,7 +125,7 @@ def simulate(agent: BaseAgent, environment: BaseEnvironment, fps: int = 30, save
     Log.success("Agent has finished the simulation.")
 
 
-def train(agent: BaseAgent, episode_length: int = 1) -> BaseAgent:
+def train(agent: Agent, episode_length: int = 1) -> Agent:
     '''
         Train the agent in the environment given
 
@@ -193,7 +193,7 @@ def main(args: dict) -> None:
             None
     '''
     agent = AGENT_OBJCECTS_DICT[args.agent]
-    environment = BaseEnvironment
+    environment = Environment
     env_config = ENV_CONFIG[args.env]
 
     if args.agent == 'manual':

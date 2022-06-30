@@ -1,9 +1,9 @@
 from pygame import Vector2
 
-from PLSimulator.entities.entity import BaseEntity
+from PLSimulator.entities.entity import Entity
 
 
-class Ground(BaseEntity):
+class Ground(Entity):
     '''
         Ground
 
@@ -23,7 +23,7 @@ class Ground(BaseEntity):
         )
 
 
-class LandingPad(BaseEntity):
+class LandingPad(Entity):
     '''
         LandingPad
 
