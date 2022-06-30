@@ -9,29 +9,77 @@ MODEL_DATA_DIRECTORY = os.path.join(DATA_DIRECTORY, "models")
 ENV_CONFIG = {
     'earth': {
         'name': 'earth-v0',
-        'gravity': 9.8,
-        'density': 1.0,
-        'max_fuel': 100,
-        'bg_colour': (137, 207, 240),
-        'width': 640,
-        'height': 900
+        'agent': {
+            'min_fuel': 20,
+            'max_fuel': 20,
+            'min_pos': (0.5, 0.1),
+            'max_pos': (0.5, 0.1),
+            'min_vel': (0, 0),
+            'max_vel': (0, 0),
+            'min_ang': 0,
+            'max_ang': 0
+        },
+        'physics': {
+            'gravity': 9.8,
+            'density': 1.0,
+            'entities': [],
+            'land_ang': 5,
+            'land_vel': 2
+        },
+        'window': {
+            'width': 640,
+            'height': 900,
+            'colour': (137, 207, 240)
+        }
     },
     'moon': {
         'name': 'moon-v0',
-        'gravity': 1.6,
-        'density': 0.0,
-        'max_fuel': 25,
-        'bg_colour': (169, 169, 169),
-        'width': 640,
-        'height': 900
+        'agent': {
+            'min_fuel': 20,
+            'max_fuel': 20,
+            'min_pos': (0.5, 0.1),
+            'max_pos': (0.5, 0.1),
+            'min_vel': (0, 0),
+            'max_vel': (0, 0),
+            'min_ang': 0,
+            'max_ang': 0
+        },
+        'physics': {
+            'gravity': 1.6,
+            'density': 0.0,
+            'entities': [],
+            'land_ang': 5,
+            'land_vel': 2
+        },
+        'window': {
+            'width': 640,
+            'height': 900,
+            'colour': (169, 169, 169)
+        }
     },
     'mars': {
         'name': 'mars-v0',
-        'gravity': 4.9,
-        'density': 0.1,
-        'max_fuel': 50,
-        'bg_colour': (110, 38, 14),
-        'width': 640,
-        'height': 900
+        'agent': {
+            'min_fuel': 20,
+            'max_fuel': 20,
+            'min_pos': (0.5, 0.1),
+            'max_pos': (0.5, 0.1),
+            'min_vel': (0, 0),
+            'max_vel': (0, 0),
+            'min_ang': 0,
+            'max_ang': 0
+        },
+        'physics': {
+            'gravity': 4.9,
+            'density': 0.2,
+            'entities': [],
+            'land_ang': 5,
+            'land_vel': 2
+        },
+        'window': {
+            'width': 640,
+            'height': 900,
+            'colour': (110, 38, 14),
+        }
     }
 }

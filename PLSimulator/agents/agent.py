@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 from PLSimulator.constants import MODEL_DATA_DIRECTORY
 
 
-class BaseAgent:
+class Agent:
     '''
-        BaseAgent
+        Agent
 
         This is the agent class from which all other agents will inherit.
     '''

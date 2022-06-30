@@ -1,10 +1,10 @@
 import os
 from ray.rllib.agents import ppo
 
-from PLSimulator.agents.agent import BaseAgent
+from PLSimulator.agents.agent import Agent
 
 
-class PPOAgent(BaseAgent):
+class PPOAgent(Agent):
     '''
         PPOAgent
 
